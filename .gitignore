@@ -7,6 +7,8 @@
 
 *.docx
 
-*.pyc*.odt
+*.pyc
+
+*.odt
 
 .idea/
