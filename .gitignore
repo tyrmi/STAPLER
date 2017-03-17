@@ -1,0 +1,12 @@
+
+*.xml
+
+*.iml
+
+*.odp
+
+*.docx
+
+*.pyc*.odt
+
+.idea/

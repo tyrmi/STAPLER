@@ -1,0 +1,3 @@
+my_sample_1_R1	my_sample_1_R2
+my_sample_2_R1	my_sample_2_R2
+my_sample_3_R1	my_sample_3_R2

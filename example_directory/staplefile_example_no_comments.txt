@@ -1,0 +1,25 @@
+STAPLER
+
+JOB_NAME: ExampleJob01
+STARTING_POINT: <absolute_path_to_current_direcory>/my_raw_data/
+PROJECT_FILE: <absolute_path_to_current_direcory>/PROJECT.txt
+
+SLURM:
+#!/bin/bash -l
+#SBATCH --time=00:15:00
+#SBATCH --partition=test
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=8000
+SLURM END:
+
+COMMANDS:
+#Initial quality check
+fastx_quality_stats -Q 33
+fastq_quality_boxplot_graph
+
+#Trim reads
+fastx_trimmer -f !2table:<absolute_path>/example_dir/sample_names_lengths.txt -Q 33
+fastq_quality_trimmer -t 20 -l 70 -Q 33
+fastq_quality_filter -q 20 -p 50 -Q 33
+COMMANDS END:
