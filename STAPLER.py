@@ -21,7 +21,7 @@ except SyntaxError:
     else:
         raise
 
-VERSION = '17.03.15'
+VERSION = '17.05.16'
 NAME = 'STAPLER'
 AUTHOR = 'Jaakko Tyrmi'
 START_TIME = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
@@ -400,7 +400,7 @@ def check_SLURM_output(infile):
         i += 1
         ln = ln.strip()
         if i == 1:
-            if ln != 'STAPLER':
+            if ln != 'STAPLER' and ln != 'PIPELINEMASTER1000':
                 raise STAPLERerror.STAPLERerror(
                     'Input file does not start with "STAPLER"-row')
             else:
@@ -842,6 +842,8 @@ def write_default(output_cmds, output_dir):
         out_lines.append('echo Executing command {0}/{1}:'
                          .format(i, len(output_cmds)))
         for c in cmd_list:
+            c = c.replace('>', '\\>')
+            c = c.replace('|', '\\|')
             out_lines.append('echo ' + c)
         out_lines.append('date')
 
@@ -943,6 +945,8 @@ def write_slurm(output_cmds, output_dir, slurm_config, project_ids, job_name, SL
                 out_lines.append('echo ' + '-'*80)
                 out_lines.append('echo Executing the following command:')
                 for c in cmd_list:
+                    c = c.replace('>', '\\>')
+                    c = c.replace('|', '\\|')
                     out_lines.append('echo ' + c)
                 out_lines.append('date')
 
@@ -950,6 +954,8 @@ def write_slurm(output_cmds, output_dir, slurm_config, project_ids, job_name, SL
                 out_lines.append('echo ' + '-'*80 + ' >&2')
                 out_lines.append('echo Executing the following command: >&2')
                 for c in cmd_list:
+                    c = c.replace('>', '\\>')
+                    c = c.replace('|', '\\|')
                     out_lines.append('echo ' + c + ' >&2')
                 out_lines.append('date >&2')
 

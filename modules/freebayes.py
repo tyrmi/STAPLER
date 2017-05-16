@@ -60,13 +60,13 @@ defining the output file.
 
 The --!input_files_per_command should have a value 'all' or 'single'. In the
 case of 'all' all bam files in the input directory are included into single
-command line. In the case of 'single' each bam file will be processed
-separately. Use of 'single' leads to the same result as the default
-behaviour in version 15.01.15 and older.
+command line, producing a single output file. In the case of 'single' each
+bam file will be processed separately, producing an output file for every
+input file.
 
 To create compressed output files the --!compress_output parameter can be
-included into the command line. The output will be piped to gzip and the output
-files will have the .gz filename extension.
+included into the command line. The output will be piped to gzip and the
+output files will have the .gz filename extension.
     '''
 
     def _select_IO(self, out_cmd, in_dir, out_dir):
@@ -152,7 +152,7 @@ files will have the .gz filename extension.
 		
     def _parse_id(self, parsed_cmd):
         """Returns the bare input file name (id)"""
-        cmd = parsed_cmd[self.mandatory_args[0]][0]
+        cmd = self.out_cmd['-v']
         cmd = os.path.basename(cmd)
         return cmd.split('.', 1)[0]
 

@@ -1,4 +1,3 @@
-import ANGSD
 import bedtools
 import BLAST
 import bayenv2
@@ -11,6 +10,7 @@ import freebayes
 import Mosaik
 import novoalign
 import Picard
+import psmc
 import samtools
 import tabix
 import Trimmomatic
@@ -18,10 +18,7 @@ import vcflib
 import VCFtools
 
 
-commands = {'ANGSD': ANGSD.ANGSD,
-            'ANY_TOOL':Custom.ANY_TOOL,
-            'baitron':Custom.baitron,
-            'baits_from_blast_selectomatic':Custom.baits_from_blast_selectomatic,
+commands = {'ANY_TOOL':Custom.ANY_TOOL,
             'bayenv2':bayenv2.bayenv2,
             'bedtools_coverageBed':bedtools.bedtools_coverageBed,
             'bedtools_multiBamCov':bedtools.bedtools_multiBamCov,
@@ -39,6 +36,8 @@ commands = {'ANGSD': ANGSD.ANGSD,
             'fastqc':FastQC.fastqc,
             'freebayes':freebayes.freebayes,
             'freebayes_parallel':freebayes.freebayes_parallel,
+            'fq2psmcfa':psmc.fq2psmcfa,
+            'history2ms':psmc.history2ms,
             'MAD_MAX':Custom.MAD_MAX,
             'MosaikBuild':Mosaik.MosaikBuild,
             'MosaikAligner':Mosaik.MosaikAligner,
@@ -55,10 +54,15 @@ commands = {'ANGSD': ANGSD.ANGSD,
             'Picard_MergeSamFiles':Picard.Picard_MergeSamFiles,
             'Picard_SamFormatConverter':Picard.Picard_SamFormatConverter,
             'Picard_SortSam':Picard.Picard_SortSam,
+            'psmc':psmc.psmc,
+            'psmc_plot':psmc.psmc_plot,
+            'psmc2history':psmc.psmc2history,
             'samtools_index':samtools.samtools_index,
             'samtools_rmdup':samtools.samtools_rmdup,
             'tabix':tabix.tabix,
             'Trimmomatic':Trimmomatic.Trimmomatic,
             'variant_density_filter':Custom.variant_density_filter,
+            'vcf2fastq':Custom.vcf2fastq,
+            'vcf_sort':Custom.vcf_sort,
             'vcflib_vcfallelicprimitives':vcflib.vcflib_vcfallelicprimitives,
             'vcftools':VCFtools.VCFtools}

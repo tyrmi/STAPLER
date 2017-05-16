@@ -1,2 +1,11 @@
+17.05.16
+-Deprecated ANGSD support
+
+17.04.24
+-Added support for psmc software
+
+17.04.18
+-Added a custom tool for sorting vcf files
+
 17.01.15
 -First public version

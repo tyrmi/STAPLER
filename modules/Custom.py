@@ -264,90 +264,6 @@ option with a new string as a value (e.g. /path/my_script.py).
             final_cmd.append(arg + ' ' + val)
         return [' '.join(final_cmd)]
 
-class baitron(GenericBase):
-    """Class for baitron.py.
-
-    Arguments:
-    in_cmd: String containing a command line
-    in_dir: Directory object containing input files
-    out_dir: Directory object containing output files
-    NOTICE! Keep the directory objects up to date about file edits!
-
-    Attributes:
-    name: Name of the function.
-    input_type: Input types accepted by this application.
-    output_types: List of output types produced by the application.
-    mandatory_args: Args the user be provided in in_cmd when initializing.
-    user_mandatory_args: Args the user must provide.
-    remove_user_args: Args that will be removed from the final command.
-    optional_args: Args that may be part of the command line.
-    in_cmd: Command entered by user.
-    parsed_cmd: Final output command as option:value dict.
-    file_names: Names of output files.
-    id: Bare name of input file (without the possible ending).
-
-
-    Methods:
-    get_cmd: Method for getting the final cmd line string for output.
-    """
-
-    name = 'baitron'
-    #Accept all defined types:
-    input_types = set(['.coverageBed_out'])
-    output_types = ['.baitron_out']
-    mandatory_args = ['-i', '-o']
-    user_mandatory_args = ['-b', '-c', '-d', '-p']
-    remove_user_args = []
-    optional_args = ['-t']
-    parallelizable = True
-    help_description = '''
-This script works for .coverageBed_out files created with bedtools coverageBed
-tool.
-    '''
-
-class baits_from_blast_selectomatic(GenericBase):
-    """Class for parallelization of baits_from_blast_selectomatic.py.
-
-    Arguments:
-    in_cmd: String containing a command line
-    in_dir: Directory object containing input files
-    out_dir: Directory object containing output files
-    NOTICE! Keep the directory objects up to date about file edits!
-
-    Attributes:
-    name: Name of the function.
-    input_type: Input types accepted by this application.
-    output_types: List of output types produced by the application.
-    mandatory_args: Args the user be provided in in_cmd when initializing.
-    user_mandatory_args: Args the user must provide.
-    remove_user_args: Args that will be removed from the final command.
-    optional_args: Args that may be part of the command line.
-    in_cmd: Command entered by user.
-    parsed_cmd: Final output command as option:value dict.
-    file_names: Names of output files.
-    id: Bare name of input file (without the possible ending).
-
-
-    Methods:
-    get_cmd: Method for getting the final cmd line string for output.
-    """
-
-    name = 'baits_from_blast_selectomatic'
-    #Accept all defined types:
-    input_types = {'.xml'}
-    output_types = ['.bfbs']
-    mandatory_args = ['-i', '-o', '-m', '-n', '-s', '-t']
-    user_mandatory_args = ['-m', '-n', '-s', '-t']
-    remove_user_args = []
-    optional_args = []
-    parallelizable = True
-    help_description = '''
-Tested with version 15.09.14.
-
-The custom output format files have the following file name extension:
-.bfbs
-    '''
-
 
 class MAD_MAX(GenericBase):
     """Class for generic command lines for MAD_MAX.py.
@@ -386,6 +302,7 @@ class MAD_MAX(GenericBase):
     parallelizable = True
     help_description = '''
 Tested with MAD_MAX v.16.03.11.
+MAD_MAX is available from https://github.com/tyrmi/PGU
     '''
 
 class ParalogAreaBEDmatic(GenericBase):
@@ -400,6 +317,7 @@ class ParalogAreaBEDmatic(GenericBase):
     parallelizable = True
     help_description = '''
 Tested with ParalogAreaBEDmatic v. 15.12.16.
+ParalogAreaBEDmatic is available from https://github.com/tyrmi/PGU
     '''
 
     def _select_IO(self, out_cmd, in_dir, out_dir):
@@ -445,6 +363,103 @@ Tested with ParalogAreaBEDmatic v. 15.12.16.
         return out_cmd, file_names
 
 
+class vcf2fastq(GenericBase):
+    """Class for vcf2fastq tool.
+
+    Arguments:
+    in_cmd: String containing a command line
+    in_dir: Directory object containing input files
+    out_dir: Directory object containing output files
+    NOTICE! Keep the directory objects up to date about file edits!
+
+    Attributes:
+    name: Name of the function.
+    input_type: Input types accepted by this application.
+    output_types: List of output types produced by the application.
+    mandatory_args: Args the user be provided in in_cmd when initializing.
+    user_mandatory_args: Args the user must provide.
+    remove_user_args: Args that will be removed from the final command.
+    optional_args: Args that may be part of the command line.
+    in_cmd: Command entered by user.
+    parsed_cmd: Final output command as option:value dict.
+    file_names: Names of output files.
+    id: Bare name of input file (without the possible ending).
+
+
+    Methods:
+    get_cmd: Method for getting the final cmd line string for output.
+    """
+
+    name = 'vcf2fastq'
+    input_types = set(['.vcf'])
+    output_types = ['.fq']
+    mandatory_args = ['-i', '-o']
+    user_mandatory_args = []
+    remove_user_args = user_mandatory_args
+    optional_args = []
+    parallelizable = True
+    help_description = '''
+Tested with vcf2fastq v. 17.04.24.
+vcf2fastq is available from https://github.com/tyrmi/PGU
+'''
+
+
+class vcf_sort(GenericBase):
+    """Class for using unix sort command on vcf files.
+
+    Arguments:
+    in_cmd: String containing a command line
+    in_dir: Directory object containing input files
+    out_dir: Directory object containing output files
+    NOTICE! Keep the directory objects up to date about file edits!
+
+    Attributes:
+    name: Name of the function.
+    input_type: Input types accepted by this application.
+    output_types: List of output types produced by the application.
+    mandatory_args: Args the user be provided in in_cmd when initializing.
+    user_mandatory_args: Args the user must provide.
+    remove_user_args: Args that will be removed from the final command.
+    optional_args: Args that may be part of the command line.
+    in_cmd: Command entered by user.
+    parsed_cmd: Final output command as option:value dict.
+    file_names: Names of output files.
+    id: Bare name of input file (without the possible ending).
+
+
+    Methods:
+    get_cmd: Method for getting the final cmd line string for output.
+    """
+
+    name = 'vcf_sort'
+    input_types = set(['.vcf'])
+    output_types = ['.vcf']
+    mandatory_args = ['-i', '-o']
+    user_mandatory_args = []
+    remove_user_args = user_mandatory_args
+    optional_args = []
+    parallelizable = True
+    help_description = '''
+This tool uses unix sort command to sort vcf files.
+
+The installation_config.txt should not be edited for this command as the used
+unix sort command is a standard command line tool which should be available in
+any unix and unix-like platform.
+'''
+
+    def get_cmd(self):
+        """Returns the final command line.
+
+        Returns:
+        final_cmd: List of command line produced by the object (line breaks not allowed within command lines!).
+        """
+        final_cmds = ['grep --no-filename "#" {0} > {1}\n'.format(self.out_cmd['-i'],
+                                                  self.out_cmd['-o'])]
+        final_cmds.append('grep --no-filename -v "#" {0} | sort -k1,1V -k2,2n >> {1}\n'.format(self.out_cmd['-i'],
+                                                                           self.out_cmd['-o']))
+        return final_cmds
+
+
 class variant_density_filter(GenericBase):
     """Class for parallelization of variant_density_filter.py.
 
@@ -482,10 +497,8 @@ class variant_density_filter(GenericBase):
     optional_args = ['-r']
     parallelizable = True
     help_description = '''
-Tested with version 15.08.21.
-
-Sorry no additional specific help available for this
-tool :(
-
-See the original tool manual for help!
+Tested with variant_density_filter v. 15.08.21.
+variant_density_filter is available from https://github.com/tyrmi/PGU
     '''
+
+
