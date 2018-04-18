@@ -11,4 +11,10 @@
 
 *.odt
 
+*.graph
+
+*.pdf
+
+*.pptx
+
 .idea/
