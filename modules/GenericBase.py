@@ -2,17 +2,18 @@ import copy
 import itertools
 import logging
 import os
+import subprocess
 
 from STAPLERerror import STAPLERerror
 from STAPLERerror import VirtualIOError
-import directory
+from STAPLERerror import NotConfiguredError
 import utils
 
 
 class GenericBase():
     """Superclass for STAPLER input classes.
 
-    Arguments:
+    Parameters:
     in_cmd: String containing a command line
     in_dir: Directory object containing input files
     out_dir: Directory object containing output files
@@ -22,6 +23,8 @@ class GenericBase():
     name: Name of the function.
     input_type: Input types accepted by this application.
     output_types: List of output types produced by the application.
+    require_output_dir: Bool for whether or not a new output directory is
+    required as some tools output to input directory.
     mandatory_args: Args the user be provided in in_cmd when initializing.
     user_mandatory_args: Args the user must provide.
     remove_user_args: Args that will be removed from the final command.
@@ -29,20 +32,22 @@ class GenericBase():
     in_cmd: Command entered by user.
     parsed_cmd: Final output command as option:value dict.
     file_names: Names of output files.
-    id: Bare name of input file (without the possible ending).
+    command_ids: File names of input file(s) with no file extensions.
 
 
     Methods:
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'generic_command'
+    name = 'GenericBase'
     input_types = set([])
     output_types = []
-    mandatory_args = ['-i', '-o']
+    require_output_dir = True
+    hidden_mandatory_args = ['-i', '-o']
+    hidden_optional_args = []
     user_mandatory_args = []
+    user_optional_args = []
     remove_user_args = user_mandatory_args
-    optional_args = []
     parallelizable = True
     help_description = '''
 This tool cannot be used by the end user.
@@ -52,26 +57,25 @@ This tool cannot be used by the end user.
         logging.info('Trying to initialize {0} with user command:\n{1}'
                      .format(self.name, in_cmd))
         self.in_cmd = in_cmd
+        self.in_dir = in_dir
         self.out_dir = out_dir
         self.parsed_in_cmd = self._cmd_parse(in_cmd)
         self.out_cmd = copy.deepcopy(self.parsed_in_cmd)
         self._validate_user_input(self.out_cmd)
-        self.out_cmd, self.file_names = self._select_IO(self.out_cmd,
-                                                        in_dir,
-                                                        out_dir)
+        self.out_cmd, self.command_ids = self._select_IO(self.out_cmd,
+                                                         in_dir,
+                                                         out_dir)
+        assert isinstance(self.command_ids, list)
+        self.command_ids = sorted(self.command_ids)
         #id is defined twice in __init__ since it must be available for
         # _user_override but it may also change in _user_override
-        self.id = self._parse_id(self.out_cmd)
         self.out_cmd = self._user_override(self.parsed_in_cmd, self.out_cmd)
         self.out_cmd = self._remove_user_arguments(self.out_cmd)
-        self._validate_final(self.out_cmd)
-        self.id = self._parse_id(self.out_cmd)
-        self.load_module = utils.parse_module(self.name,
-                                              'cmd_name',
-                                              'load_module')
-        self.unload_module = utils.parse_module(self.name,
-                                                'cmd_name',
-                                                'unload_module')
+        self._validate_STAPLER_output_parameters(self.out_cmd)
+        self.run_command = self.run_command_config()
+        self.load_module = self.load_module_config()
+        self.unload_module = self.unload_module_config()
+        self.command_lines = self.get_cmd()
         logging.info('Finished initializing {0} with user command:\n{1}'
                      .format(self.name, in_cmd))
 
@@ -118,9 +122,9 @@ This tool cannot be used by the end user.
         return parsed_cmd
 
     def _validate_user_input(self, in_cmd):
-        """Validates the input command of user.
+        """Ensures the user has included all mandatory arguments.
 
-        Arguments:
+        Parameters:
         in_cmd: String the user has input.
 
         Raises:
@@ -136,19 +140,19 @@ This tool cannot be used by the end user.
                                    .format(self.name, m_cmd))
 
     def _select_IO(self, out_cmd, in_dir, out_dir):
-        """Returns a dict containing the proper IO commands.
+        """Infers the input and output file paths.
 
         This method must keep the directory objects up to date of the file
         edits!
 
-        Arguments:
+        Parameters:
         in_cmd: A dict containing the command line.
         in_dir: Input directory (instance of filetypes.Directory).
         out_dir: Output directory (instance of filetypes.Directory).
 
         Returns:
         out_cmd: Dict containing the output commands
-        file_names: Names of the output files.
+        command_identifier: Input file name based identifier for the current command
 
         Raises:
         VirtualIOError: No valid input file can be found.
@@ -156,16 +160,17 @@ This tool cannot be used by the end user.
 
         IO_files = {}
         file_names = set()
-        for fl_name, users in in_dir.files.iteritems():
-            if self.name not in users:
-                if utils.splitext(fl_name)[-1] in self.input_types:
-                    IO_files['-i'] = os.path.join(in_dir.path, fl_name)
-                    in_dir.use_file(fl_name, self.name)
-                    assert len(self.output_types) == 1, 'Several output ' \
-                                                        'types, override ' \
-                                                        'this method!'
+        for fl in in_dir.files:
+            if self.name not in fl.users:
+                if utils.splitext(fl.name)[-1] in self.input_types:
+                    IO_files['-i'] = os.path.join(in_dir.path, fl.name)
+                    command_ids = [utils.infer_path_id(IO_files['-i'])]
+                    in_dir.use_file(fl.name, self.name)
+                    assert len(self.output_types) < 2, 'Several output ' \
+                                                       'types, override ' \
+                                                       'this method!'
 
-                    output_name = utils.splitext(fl_name)[0] + \
+                    output_name = utils.splitext(fl.name)[0] + \
                                   self.output_types[0]
                     output_path = os.path.join(out_dir.path, output_name)
                     IO_files['-o'] = output_path
@@ -175,12 +180,12 @@ This tool cannot be used by the end user.
         if not IO_files:
             raise VirtualIOError('No more unused input files')
         out_cmd.update(IO_files)
-        return out_cmd, file_names
+        return out_cmd, command_ids
 
     def _user_override(self, parsed_in_cmd, out_cmd):
         """Overrides auto-inferred values with possible user inputs.
 
-        Arguments:
+        Parameters:
         parsed_in_cmd: Parsed unmodified dict of user input.
         out_cmd: Dict of auto-inferred output commands.
 
@@ -189,63 +194,42 @@ This tool cannot be used by the end user.
         """
 
         for arg, value in parsed_in_cmd.iteritems():
-            if value.startswith('!2table'):
-                new_value = self._parse_2table(value)
-                out_cmd[arg] = new_value
-            elif value.startswith('!named_table'):
-                new_value = self._parse_named_table(value)
+            if value.startswith('!value_table'):
+                new_value = self._parse_value_table(value)
                 out_cmd[arg] = new_value
         return out_cmd
 
-    def _parse_2table(self, string):
-        """Parses the 2table input.
+    def _parse_value_table(self, string):
+        """Parses the !value_table input.
 
         Proper format:
-        !2table:path
+        !value_table:path:column_name_1:column_name_2
 
-        Arguments:
-        string: !2table command.
-
-        Raises:
-        STAPLERerror: The !2table format is not correct.
-
-        Returns:
-        String read from user defined file.
-        """
-        if string.count(':') != 1:
-            raise STAPLERerror('Invalid !2table format:\n{0}'.format(string))
-        path = string.split(':')[1]
-        return utils.read_value(path, self.id)
-
-    def _parse_named_table(self, string):
-        """Parses the !named_table input.
-
-        Proper format:
-        !named_table:path:column_name_1:column_name_2
-
-        Arguments:
-        string: !named_table command.
+        Parameters:
+        string: !value_table command.
 
         Raises:
-        STAPLERerror: The !named_table format is not correct.
+        STAPLERerror: The !value_table format is not correct.
 
         Returns:
         String read from user defined file.
         """
         if string.count(':') != 3:
-            raise STAPLERerror('Invalid !custom_table format:\n{0}'.format(string))
+            raise STAPLERerror('Invalid !value_table format:\n{'
+                               '0}\nProper format for value table looks like '
+                               'this:\npath/to/value_table_file.txt:id_name_column:value_column.'.format(string))
         path = string.split(':')[1]
         column_name_1 = string.split(':')[2]
         column_name_2 = string.split(':')[3]
         return utils.read_value_from_multi_table(path,
-                                                 self.id,
+                                                 self.command_ids[0],
                                                  column_name_1,
                                                  column_name_2)
 
     def _remove_user_arguments(self, out_cmd):
         """Removes the specified arguments from final command line.
 
-        Arguments:
+        Parameters:
         out_cmd: Dict containing the output commands
         Returns:
         Output commands
@@ -257,7 +241,7 @@ This tool cannot be used by the end user.
                 pass
         return out_cmd
 
-    def _validate_final(self, parsed_cmd):
+    def _validate_STAPLER_output_parameters(self, parsed_cmd):
         """Validates the final output command line.
 
         Raises STAPLERerror if validation is unsuccessful
@@ -268,24 +252,94 @@ This tool cannot be used by the end user.
         STAPLERerror if validation is unsuccessful
         """
 
-        for ma in self.mandatory_args:
-            if ma not in parsed_cmd:
-                raise STAPLERerror('The command line does not contain '
-                                 'all the mandatory arguments '
-                                 '{0}:\n{1}'.format(self.mandatory_args,
-                                                    ' '.join(parsed_cmd)))
+        for ma in self.hidden_mandatory_args:
+            assert ma in parsed_cmd, 'The command line does not contain all ' \
+                                     'the mandatory arguments {0}: ' \
+                                     '\n{1}'.format(self.hidden_mandatory_args,
+                                                    ' '.join(parsed_cmd))
         for cmd in parsed_cmd:
-            if (cmd not in self.mandatory_args and
+            if (cmd not in self.hidden_mandatory_args and
+                        cmd not in self.hidden_optional_args and
                         cmd not in self.user_mandatory_args and
-                        cmd not in self.optional_args):
-                raise STAPLERerror('Unknown option:\n{0}\n'
-                              'on command line:\n{1}'.format(cmd, self.in_cmd))
+                        cmd not in self.user_optional_args):
+                logging.warning('Unknown option:\n{0}\n'
+                                'on command line:\n{1}'.format(cmd, self.in_cmd))
 
-    def _parse_id(self, parsed_cmd):
-        """Returns the bare input file name (id)"""
-        input_file_name = parsed_cmd[self.mandatory_args[0]]
-        input_file_name = os.path.basename(input_file_name)
-        return input_file_name.split('.', 1)[0]
+    @classmethod
+    def validate_tool_config(cls):
+        """Checks if the current tool can be run as defined in config.txt
+
+        """
+
+        # Command is not defined
+        try:
+            cls.run_command_config()
+        except NotConfiguredError:
+            return ['NONE', 'NONE', 'NONE']
+
+        devnull = open(os.devnull, 'wb')
+        module_unloading_test = '-   '
+        command_run_test = '-   '
+
+        # Test if loading modules works
+        if cls.load_module_config():
+            try:
+                subprocess.check_call(' && '.join(cls.load_module_config()),
+                                      shell=True,
+                                      stdout=devnull,
+                                      stderr=devnull)
+                module_loading_test = 'OK  '
+            except subprocess.CalledProcessError:
+                module_loading_test = 'FAIL'
+                return [command_run_test, module_loading_test, module_unloading_test]
+        else:
+            module_loading_test = 'OK  '
+
+        # Test if loading modules and then unloading them works
+        if cls.unload_module_config():
+            try:
+                subprocess.check_call(' && '.join(cls.load_module_config() + cls.unload_module_config()),
+                                      shell=True,
+                                      stdout=devnull,
+                                      stderr=devnull)
+                module_unloading_test = 'OK  '
+            except subprocess.CalledProcessError:
+                module_unloading_test = 'FAIL'
+        else:
+            module_unloading_test = 'OK  '
+
+        # Test if loading modules, and then running the command fails
+        run_command_with_command_v = 'command -v {0}'.format(cls.run_command_config())
+        try:
+            if cls.load_module_config():
+                subprocess.check_call(' && '.join(cls.load_module_config() + [run_command_with_command_v]),
+                                      shell=True,
+                                      stdout=devnull,
+                                      stderr=devnull)
+            else:
+                subprocess.check_call(run_command_with_command_v,
+                                      shell=True,
+                                      stdout=devnull,
+                                      stderr=devnull)
+            command_run_test = 'OK  '
+        except subprocess.CalledProcessError:
+            command_run_test = 'FAIL'
+
+        return [command_run_test, module_loading_test, module_unloading_test]
+
+
+    @classmethod
+    def run_command_config(cls):
+        return utils.parse_config(cls.name, 'cmd_name', 'execute')
+
+    @classmethod
+    def load_module_config(cls):
+        return utils.parse_module(cls.name, 'cmd_name', 'load_module')
+
+    @classmethod
+    def unload_module_config(cls):
+        return utils.parse_module(cls.name, 'cmd_name', 'unload_module')
+
 
     def get_cmd(self):
         """Returns the final command line.
@@ -293,11 +347,8 @@ This tool cannot be used by the end user.
         Returns:
         final_cmd: List of command line produced by the object (line breaks not allowed within command lines!).
         """
-        run_command = utils.parse_config(self.name, 'cmd_name', 'prefix')
-        if run_command is None:
-            final_cmd = [self.name]
-        else:
-            final_cmd = [run_command]
+        run_command = self.run_command
+        final_cmd = [run_command]
         for arg, val in self.out_cmd.iteritems():
             final_cmd.append(arg + ' ' + val)
         return [' '.join(final_cmd)]

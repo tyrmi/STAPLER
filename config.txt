@@ -1,0 +1,59 @@
+cmd_name	execute	load_module	unload_module
+MosaikAligner	MosaikAligner	none	none
+MosaikBuild	MosaikBuild	none	none
+MosaikText	MosaikText	none	none
+PGU_MAD_MAX	python /path/to/MAD_MAX.py	none	none
+PGU_ParalogAreaBEDmatic	python /path/to/ParalogAreaBEDmatic.py	none	none
+PGU_variant_density_filter	python /path/to/variant_density_filter.py	none	none
+PGU_vcf2fastq	python /path/to/vcf2fastq.py	none	none
+PGU_vcf_allele_count_filter	python /path/to/vcf_allele_count_filter.py	none	none
+Picard_AddOrReplaceReadGroups	picard AddOrReplaceReadGroups	none	none
+Picard_CollectAlignmentSummaryMetrics	picard CollectAlignmentSummaryMetrics	none	none
+Picard_CollectInsertSizeMetrics	picard CollectInsertSizeMetrics	none	none
+Picard_CollectWgsMetrics	picard CollectWgsMetrics	none	none
+Picard_MarkDuplicates	picard MarkDuplicates	none	none
+Picard_SamFormatConverter	picard SamFormatConverter	none	none
+Picard_SortSam	picard SortSam	none	none
+bayenv2	none	none	none
+bcftools_call	bcftools call	none	none
+bcftools_mpileup	bcftools mpileup	none	none
+bgzip	bgzip	none	none
+bowtie2	bowtie2	none	none
+bwa_bwasw	bwa bwasw	none	none
+bwa_mem	bwa mem	none	none
+cutadapt	cutadapt	none	none
+fastqc	fastqc	none	none
+fastx_toolkit_fasta_formatter	fasta_formatter	none	none
+fastx_toolkit_fasta_nucleotide_changer	fasta_nucleotide_changer	none	none
+fastx_toolkit_fastq_quality_boxplot_graph.sh	fastq_quality_boxplot_graph.sh	none	none
+fastx_toolkit_fastq_quality_filter	fastq_quality_filter	none	none
+fastx_toolkit_fastq_quality_trimmer	fastq_quality_trimmer	none	none
+fastx_toolkit_fastq_to_fasta	fastq_to_fasta	none	none
+fastx_toolkit_fastx_artifacts_filter	fastx_artifacts_filter	none	none
+fastx_toolkit_fastx_clipper	fastx_clipper	none	none
+fastx_toolkit_fastx_collapser	fastx_collapser	none	none
+fastx_toolkit_fastx_nucleotide_distribution_graph.sh	fastx_nucleotide_distribution_graph.sh	none	none
+fastx_toolkit_fastx_quality_stats	fastx_quality_stats	none	none
+fastx_toolkit_fastx_renamer	fastx_renamer	none	none
+fastx_toolkit_fastx_reverse_complement	fastx_reverse_complement	none	none
+fastx_toolkit_fastx_trimmer	fastx_trimmer	none	none
+freebayes	freebayes	none	none
+gatk_ApplyBQSR	gatk ApplyBQSR	none	none
+gatk_BaseRecalibrator	gatk BaseRecalibrator	none	none
+gatk_GenotypeGVCFs	gatk GenotypeGVCFs	none	none
+gatk_HaplotypeCaller	gatk HaplotypeCaller	none	none
+gatk_IndexFeatureFile	gatk IndexFeatureFile	none	none
+gzip	gzip	none	none
+psmc	psmc	none	none
+psmc2history	psmc2history	none	none
+psmc_fq2psmcfa	fq2psmcfa	none	none
+psmc_history2ms	history2ms	none	none
+psmc_plot	psmc_plot	none	none
+samtools_index	samtools index	none	none
+samtools_rmdup	samtools rmdup	none	none
+soap	soap	none	none
+tabix	tabix	none	none
+trimmomatic	trimmomatic	none	none
+vcf_sort	none	none	none
+vcflib_vcfallelicprimitives	vcfallelicprimitives	none	none
+vcftools	vcftools	none	none

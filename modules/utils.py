@@ -1,16 +1,49 @@
-"""Commonly used methods."""
+"""Commonly used functions."""
 
 import logging
 import os
 
 from STAPLERerror import STAPLERerror
+from STAPLERerror import NotConfiguredError
 
+# Define the config file path
+CONFIG_FILE_PATH = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+CONFIG_FILE_PATH = os.path.split(CONFIG_FILE_PATH)[0]
+CONFIG_FILE_PATH = os.path.join(CONFIG_FILE_PATH, 'config.txt')
+
+# The following commands need not to be in config.txt
+CONFIG_FILE_OMITTED_COMMANDS = set(['CUSTOM', 'bayenv2', 'vcf_sort'])
+
+def parse_staplefile_command_line(command_line):
+    """Parses command type and parameters from command line strings.
+
+    Parameters:
+    command_line: User-defined command line (in staplefile) for specific tool.
+
+    Returns:
+    command_type: The class of the tool specified in the command line.
+    command_parameters: Parameters to be used with the tool.
+
+    Raises:
+    STAPLERerror: The command type user has defined is not supported by STAPLER.
+    """
+    import AvailableCommands
+
+    command_line = command_line.split()
+    try:
+        command_type = AvailableCommands.commands[command_line[0]]
+    except KeyError:
+        raise STAPLERerror(
+            'The following command type is not '
+            'supported: {0}'.format(command_line[0]))
+    command_parameters = ' '.join(command_line[1:])
+    return command_type, command_parameters
 
 
 def parse_table_2(handle):
     """Reads a tab delimited table of two columns into a dict name:value
 
-    Arguments:
+    Parameters:
     handle: File in opened in a read mode
 
     Returns:
@@ -30,11 +63,11 @@ def parse_table_2(handle):
         ln = ln.split('\t')
         if len(ln) != 2:
             raise STAPLERerror('Expected 2 columns in file:\n{0}'
-                             '\nfound: {1}'.format(handle, len(ln)))
+                               '\nfound: {1}'.format(handle, len(ln)))
         if ln[0] in d:
             raise STAPLERerror('Expected to find each row name only once when '
-                             'reading file:\n{0}\nThis value was found twice:'
-                             '\n{1}'.format(handle, ln[0]))
+                               'reading file:\n{0}\nThis value was found twice:'
+                               '\n{1}'.format(handle, ln[0]))
 
         d[ln[0]] = ln[1]
     return d
@@ -43,7 +76,7 @@ def parse_table_2(handle):
 def read_value(file_path, name):
     """Open a file and returns the value of row with specific name.
 
-    Arguments:
+    Parameters:
     file_path: Path to an existing file. parse_table_2 must be able to open
     and parse the file.
     name: Row name in the file.
@@ -61,14 +94,14 @@ def read_value(file_path, name):
     try:
         return d[name]
     except KeyError:
-        raise STAPLERerror('The following file does not contain the name {'
-                      '0}\n{1}'.format(name, file_path))
+        raise STAPLERerror('The following file does not contain row name {'
+                           '0}\n{1}'.format(name, file_path))
 
 
 def parse_table_multi(handle, key_col_name, value_col_name):
     """Reads a tab delimited table of n columns into a dict name:value
 
-    Arguments:
+    Parameters:
     handle: File in opened in a read mode
     key_col_name: Name of a column to read as a key.
     value_col_name: Name of a column to read as a value.
@@ -89,13 +122,13 @@ def parse_table_multi(handle, key_col_name, value_col_name):
             ln = ln.strip('#')
             if '\t' not in ln:
                 raise ValueError('File must have several columns:\n{0}'
-                              .format(handle))
+                                 .format(handle))
             col_names = ln.split('\t')
             if key_col_name not in col_names:
-                raise ValueError('{0} was not found from names in file: {1}'
+                raise ValueError('{0} was not found from row names in file: {1}'
                                  .format(key_col_name, col_names))
             if value_col_name not in col_names:
-                raise ValueError('{0} was not found from names in file: {1}'
+                raise ValueError('{0} was not found from row names in file: {1}'
                                  .format(value_col_name, col_names))
             key_col = col_names.index(key_col_name)
             value_col = col_names.index(value_col_name)
@@ -122,7 +155,7 @@ def parse_table_multi(handle, key_col_name, value_col_name):
 def read_value_from_multi_table(file_path, name, key_col_name, value_col_name):
     """Open a file and returns the value of row with specific name.
 
-    Arguments:
+    Parameters:
     file_path: Path to an existing file. parse_table_2 must be able to open
     and parse the file.
     name: Row name in the file.
@@ -147,8 +180,8 @@ def read_value_from_multi_table(file_path, name, key_col_name, value_col_name):
     try:
         return d[name]
     except KeyError:
-        raise STAPLERerror('The following file does not contain the name {'
-                      '0}\n{1}\nFound names are:\n{2}'.format(name, file_path,
+        raise STAPLERerror('Could not find string "{0}" from file\n{1}'
+                           '\nFound names are:\n{2}'.format(name, file_path,
                                                             '\n'.join(sorted(list(d.keys())))))
 
 
@@ -158,29 +191,24 @@ def get_config_file():
     Returns:
     config_lines: Command file contents.
     """
-    installation_config_path = os.path.abspath('installation_config.txt')
-    if not os.path.isfile(installation_config_path):
-        raise STAPLERerror('Installation config file was not found from '
-                      'predetermined location: '
-                      '\n{0}'.format(installation_config_path))
     try:
-        config_handle = open(installation_config_path)
+        with open(CONFIG_FILE_PATH, 'r') as content_file:
+            config_file_string = content_file.read()
+            config_file_string = config_file_string.replace('\r\n', '\n')
     except:
         raise STAPLERerror('Unable to open config file from path:\n{0}'
-                           .format(installation_config_path))
+                           .format(CONFIG_FILE_PATH))
 
-    config_lines = [line for line in config_handle]
+    return config_file_string
 
-    config_handle.close()
-
-    return ''.join(config_lines)
 
 
 def parse_config(tool_name, key_col_name, value_col_name):
-    """Parses the run command for the given tool from installation config file.
+    """Parses the "execute" field for the given tool from installation config
+    file.
 
 
-    Arguments:
+    Parameters:
     tool_name: Tool name to search from file.
 
     Raises:
@@ -192,20 +220,11 @@ def parse_config(tool_name, key_col_name, value_col_name):
     String containing the user specified run command, None if no special
     command has been defined.
     """
-    installation_config_path = os.path.abspath('installation_config.txt')
-    if not os.path.isfile(installation_config_path):
-        raise STAPLERerror('Installation config file was not found from '
-                      'predetermined location: '
-                      '\n{0}\n'
-                      'NOTICE: STAPLER should be run from the '
-                      'directory containing the STAPLER.py since '
-                      'the installation_config.txt is expected to be in the '
-                      'current directory (./installation_config.txt)!'
-                      ''.format(
-            installation_config_path))
+    # Return None for the generic_base class, as it should not be in the
+    # config file in any case
 
     try:
-        run_command = read_value_from_multi_table(installation_config_path,
+        run_command = read_value_from_multi_table(CONFIG_FILE_PATH,
                                                   tool_name,
                                                   key_col_name,
                                                   value_col_name)
@@ -217,33 +236,19 @@ def parse_config(tool_name, key_col_name, value_col_name):
         raise
 
     if run_command == 'none':
-        run_command = None
+        raise NotConfiguredError()
     if run_command == '':
         raise STAPLERerror('Error! Empty value for tool {0} was found from '
-                      'installation configuration file (use the value "none" '
-                      'if you wish not define a special run command for '
-                      'this tool!):\n{1}'
-                           .format(tool_name, installation_config_path))
+                           'installation configuration file !):\n{1}'.format(tool_name,
+                                                                             CONFIG_FILE_PATH))
 
-    #Try to validate paths
-    if run_command:
-        tmp_command = run_command.split()
-        for possible_path in tmp_command:
-            #Try to recognise elements that are UNIX paths and check if they exist:
-            if '/' in possible_path:
-                if not os.path.exists(possible_path):
-                    logging.warning('If the following string in '
-                                    'installation_config.txt file is a file '
-                                    'path, it does not exist:\n{0}'
-                                    .format(run_command))
     return run_command
 
 
 def parse_module(tool_name, key_col_name, value_col_name):
     """Parses the run command for the given tool from installation config file.
 
-
-    Arguments:
+    Parameters:
     tool_name: Tool name to search from file.
     key_col_name: Name of the key column,
     value_col_name: Name of the value column.
@@ -257,14 +262,13 @@ def parse_module(tool_name, key_col_name, value_col_name):
     String containing the user specified run command, None if no special
     command has been defined.
     """
-    installation_config_path = os.path.abspath('installation_config.txt')
-    if not os.path.isfile(installation_config_path):
-        raise STAPLERerror('Installation config file was not found from '
-                      'predetermined location: '
-                      '\n{0}'.format(installation_config_path))
+    # Return None for the generic_base class, as it should not be in the
+    # config file in any case
+    if tool_name == 'GenericBase': return None
 
+    # Define the location of STAPLER.py file
     try:
-        load_module = read_value_from_multi_table(installation_config_path,
+        load_module = read_value_from_multi_table(CONFIG_FILE_PATH,
                                                   tool_name,
                                                   key_col_name,
                                                   value_col_name)
@@ -281,19 +285,19 @@ def parse_module(tool_name, key_col_name, value_col_name):
         return []
     if load_module == '':
         raise STAPLERerror('Error! Empty value for tool {0} was found from '
-                      'installation configuration file (use the value "none" '
-                      'if you wish not define a special run command for '
-                      'this tool!):\n{1}'
-                           .format(tool_name, installation_config_path))
+                           'installation configuration file (use the value "none" '
+                           'if you wish not define a special run command for '
+                           'this tool!):\n{1}'
+                           .format(tool_name, CONFIG_FILE_PATH))
 
     return [load_module]
 
 
-def find_pairs(virtual_dir, pattern='_R?', user=None, file_format=None,
-               exclusion_iterable=[]):
+def find_pairs(virtual_dir, pattern='_R?', user=None, file_formats=None,
+               exclusion_iterable=None):
     """Finds pairs for paired end files within virtual directories.
 
-    Arguments:
+    Parameters:
     virtual_dir: Virtual directory containing files.
     pattern: Pattern to look for from the files. Pair 1 should have 1 and
     pair 2 a 2 in place of ?.
@@ -310,17 +314,28 @@ def find_pairs(virtual_dir, pattern='_R?', user=None, file_format=None,
     """
 
     if pattern.count('?') != 1:
-        raise STAPLERerror('Paired end pattern should contain one "?":\n'
+        raise STAPLERerror('Paired end pattern should contain one "?", current pattern:\n{0}'
                            .format(pattern))
+
+    if user is None:
+        user = []
+    if file_formats is None:
+        file_formats = []
+    if exclusion_iterable is None:
+        exclusion_iterable = []
 
     pairs = []
     read1_pattern = pattern.replace('?', '1')
     read2_pattern = pattern.replace('?', '2')
-    files = virtual_dir.files.keys()
+    files = virtual_dir.file_names.keys()
     for fl in files:
         #Exclude files that are in wrong format
-        if file_format:
-            if not fl.endswith(file_format): continue
+        if file_formats:
+            correct_format = False
+            for f in file_formats:
+                if fl.endswith(f):
+                    correct_format = True
+            if not correct_format: continue
         #Exclude file if it contains a specified substring
         if exclusion_iterable:
             cnt = False
@@ -334,9 +349,9 @@ def find_pairs(virtual_dir, pattern='_R?', user=None, file_format=None,
             pair2_fl = pair1_fl.replace(read1_pattern, read2_pattern)
             if not pair2_fl in files: continue
             if user:
-                if user in virtual_dir.files[pair1_fl]:
+                if user in virtual_dir.file_names[pair1_fl].users:
                     continue
-                if user in virtual_dir.files[pair2_fl]:
+                if user in virtual_dir.file_names[pair2_fl].users:
                     continue
             pairs.append((pair1_fl, pair2_fl))
     return pairs
@@ -348,7 +363,7 @@ def splitext(absolute_path):
     gives .<ext>.gz extension for gzip compressed files
     gives .<ext>.bz2 extension for bz2 compressed files
 
-    Arguments:
+    Parameters:
     file_name: name of the file
 
     Returns: a list of [basename, extension (empty string if no extension)]
@@ -363,4 +378,19 @@ def splitext(absolute_path):
                     twice_splitexted_absolute_path[1] + splitexted_absolute_path[1]]
     else:
         return os.path.splitext(absolute_path)
+
+
+def infer_path_id(path):
+    """Infers the ID of a directory or a file.
+
+    Id is defined as the string preceding the first dot in the file basename.
+
+    Parameters:
+    path: an absolute or a relative path to a directory or a file
+
+    Returns:
+    id: the string preceding the first dot in the path string basename.
+    """
+    path = os.path.basename(path)
+    return path.split('.', 1)[0]
 

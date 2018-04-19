@@ -10,10 +10,10 @@ import directory
 import utils
 
 
-class Trimmomatic(GenericBase):
+class trimmomatic(GenericBase):
     """Class for generic command lines, also superclass for STAPLER input classes.
 
-    Arguments:
+    Parameters:
     in_cmd: String containing a command line
     in_dir: Directory object containing input files
     out_dir: Directory object containing output files
@@ -30,25 +30,25 @@ class Trimmomatic(GenericBase):
     in_cmd: Command entered by user.
     parsed_cmd: Final output command as option:value dict.
     file_names: Names of output files.
-    id: Bare name of input file (without the possible ending).
+    command_ids: File names of input file(s) with no file extensions.
 
 
     Methods:
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'Trimmomatic'
+    name = 'trimmomatic'
     #Accept all defined types:
     input_types = {'.fastq'}
     output_types = ['.fastq']
-    mandatory_args = ['--!fastq1', '--!out_1', '-threads']
+    hidden_mandatory_args = ['--!fastq1', '--!out_1', '-threads']
     user_mandatory_args = ['-threads']
     remove_user_args = ['--!PE', '--!SE', '--!read_format']
-    optional_args = ['--!PE', '--!SE', '--!read_format', '--!fastq2',
-                     '--!out_2', '--!out_unpaired_1', '--!out_unpaired_2',
-                     '-ILLUMINACLIP', '-SLIDINGWINDOW', '-MAXINFO', '-LEADING',
-                     '-TRAILING', '-CROP', '-HEADCROP', '-MINLEN', '-AVGQUAL',
-                     '-TOPHRED33', '-TOPHRED64']
+    user_optional_args = ['--!PE', '--!SE', '--!read_format', '--!fastq2',
+                          '--!out_2', '--!out_unpaired_1', '--!out_unpaired_2',
+                          '-ILLUMINACLIP', '-SLIDINGWINDOW', '-MAXINFO', '-LEADING',
+                          '-TRAILING', '-CROP', '-HEADCROP', '-MINLEN', '-AVGQUAL',
+                          '-TOPHRED33', '-TOPHRED64']
     parallelizable = True
     help_description = '''
 Tested with Trimmomatic version 0.32.
@@ -81,9 +81,9 @@ samplename_R2, the --!read_format argument should look like this:
 --!read_format _R?
     '''
     def _validate_user_input(self, in_cmd):
-        """Validates the input command of user.
+        """Ensures the user has included all mandatory arguments.
 
-        Arguments:
+        Parameters:
         in_cmd: String the user has input.
 
         Raises:
@@ -93,41 +93,41 @@ samplename_R2, the --!read_format argument should look like this:
         for m_cmd in self.user_mandatory_args:
             if m_cmd not in in_cmd:
                 raise STAPLERerror('{0} command needs the following argument: {'
-                              '1}'.format(self.name, m_cmd))
+                                   '1}'.format(self.name, m_cmd))
             if not in_cmd[m_cmd]:
                 raise STAPLERerror('{0} command needs the following argument to '
-                              'have a value: {'
-                              '1}'.format(self.name, m_cmd))
+                                   'have a value: {'
+                                   '1}'.format(self.name, m_cmd))
 
         if '--!PE' not in self.parsed_in_cmd and '--!SE' not in self.parsed_in_cmd:
             raise STAPLERerror('For {0} the --!PE or --!SE must be '
-                          'defined! Neither argument was found from '
-                          'current command line!'.format(self.name))
+                               'defined! Neither argument was found from '
+                               'current command line!'.format(self.name))
 
         if '--!PE' in self.parsed_in_cmd and '--!SE' in self.parsed_in_cmd:
             raise STAPLERerror('For {0} the --!PE or --!SE must be defined! Both '
-                          'arguments were found in the current command line'
-                          '!'.format(self.name))
+                               'arguments were found in the current command line'
+                               '!'.format(self.name))
 
         if '--!PE' in self.parsed_in_cmd and '--!read_format' not in self.parsed_in_cmd:
             raise STAPLERerror('--!read_format argument was not found from current '
-                          'command! It is mandatory in --!PE mode!'.format(self.name))
+                               'command! It is mandatory in --!PE mode!'.format(self.name))
 
 
     def _select_IO(self, out_cmd, in_dir, out_dir):
-        """Returns a dict containing the proper IO commands.
+        """Infers the input and output file paths.
 
         This method must keep the directory objects up to date of the file
         edits!
 
-        Arguments:
+        Parameters:
         in_cmd: A dict containing the command line.
         in_dir: Input directory.
         out_dir: Output directory.
 
         Returns:
         out_cmd: Dict containing the output commands
-        file_names: Names of the output files.
+        command_identifier: Input file name based identifier for the current command
 
         Raises:
         VirtualIOError: No valid input file can be found.
@@ -149,17 +149,16 @@ samplename_R2, the --!read_format argument should look like this:
                                    .format(self.name))
             if len(read_format) < 2:
                 raise STAPLERerror('{0} argument --!read_format value should have '
-                              'length of at least 2!'
+                                   'length of at least 2!'
                                    .format(self.name))
             del out_cmd[arg]
 
-            paired_files = utils.find_pairs(in_dir,
-                                            pattern=self.parsed_in_cmd[
-                                                '--!read_format'],
-                                            user=self.name,
-                                            file_format=list(self.input_types)[0],
-                                            exclusion_iterable=['pairless',
-                                                                'unmatched'])
+            paired_files = in_dir.file_pairs(pattern=self.parsed_in_cmd[
+                '--!read_format'],
+                                             user=self.name,
+                                             file_formats=list(self.input_types),
+                                             exclusion_iterable=['pairless',
+                                                                 'unmatched'])
             if not paired_files:
                 raise VirtualIOError('{0} argument did not find any pairs from'
                                      'folder {1}'.format(self.name, in_dir.path))
@@ -168,41 +167,44 @@ samplename_R2, the --!read_format argument should look like this:
             file_names = set()
             for pair in paired_files:
                 pair1, pair2 = pair
+                if self.name not in in_dir.file_names[pair1].users and self.name not in in_dir.file_names[pair2].users:
+                    #Infer inputs
+                    IO_files['--!fastq1'] = os.path.join(in_dir.path, pair1)
+                    command_ids = [utils.infer_path_id(IO_files['--!fastq1'])]
+                    in_dir.use_file(pair1, self.name)
+                    IO_files['--!fastq2'] = os.path.join(in_dir.path, pair2)
+                    command_ids.append(utils.infer_path_id(IO_files['--!fastq2']))
+                    in_dir.use_file(pair2, self.name)
 
-                #Infer inputs
-                IO_files['--!fastq1'] = os.path.join(in_dir.path, pair1)
-                in_dir.use_file(pair1, self.name)
-                IO_files['--!fastq2'] = os.path.join(in_dir.path, pair2)
-                in_dir.use_file(pair2, self.name)
+                    #Infer output
+                    IO_files['--!out_1'] = os.path.join(out_dir.path, pair1)
+                    IO_files['--!out_2'] = os.path.join(out_dir.path, pair2)
 
-                #Infer output
-                IO_files['--!out_1'] = os.path.join(out_dir.path, pair1)
-                IO_files['--!out_2'] = os.path.join(out_dir.path, pair2)
-
-                IO_files['--!out_unpaired_1'] = os.path.join(out_dir.path,
-                                                             pair1+'.pairless_1.out')
-                IO_files['--!out_unpaired_2'] = os.path.join(out_dir.path,
-                                                             pair2+'.pairless_2.out')
-                file_names.add(pair1)
-                out_dir.add_file(pair1)
-                file_names.add(pair2)
-                out_dir.add_file(pair2)
-                break
+                    IO_files['--!out_unpaired_1'] = os.path.join(out_dir.path,
+                                                                 pair1+'.pairless_1.out')
+                    IO_files['--!out_unpaired_2'] = os.path.join(out_dir.path,
+                                                                 pair2+'.pairless_2.out')
+                    file_names.add(pair1)
+                    out_dir.add_file(pair1)
+                    file_names.add(pair2)
+                    out_dir.add_file(pair2)
+                    break
 
         if '--!SE' in self.parsed_in_cmd:
             IO_files = {}
             file_names = set()
-            for fl_name, users in in_dir.files.iteritems():
-                if self.name not in users:
-                    if utils.splitext(fl_name)[-1] in self.input_types:
+            for fl in in_dir.files:
+                if self.name not in fl.users:
+                    if utils.splitext(fl.name)[-1] in self.input_types:
                         IO_files['--!fastq1'] = os.path.join(in_dir.path,
-                                                             fl_name)
-                        in_dir.use_file(fl_name, self.name)
+                                                             fl.name)
+                        command_ids = [utils.infer_path_id(IO_files['--!fastq1'])]
+                        in_dir.use_file(fl.name, self.name)
                         assert len(self.output_types) == 1, 'Several output ' \
                                                             'types, override ' \
                                                             'this method!'
 
-                        output_name = utils.splitext(fl_name)[0] + \
+                        output_name = utils.splitext(fl.name)[0] + \
                                       self.output_types[0]
                         output_path = os.path.join(out_dir.path, output_name)
                         IO_files['--!out_1'] = output_path
@@ -215,7 +217,7 @@ samplename_R2, the --!read_format argument should look like this:
         if not IO_files:
             raise VirtualIOError('No more unused input files')
         out_cmd.update(IO_files)
-        return out_cmd, file_names
+        return out_cmd, command_ids
 
     def get_cmd(self):
         """Returns the final command line.
@@ -223,11 +225,8 @@ samplename_R2, the --!read_format argument should look like this:
         Returns:
         final_cmd: List of command line produced by the object (line breaks not allowed within command lines!).
         """
-        run_command = utils.parse_config(self.name, 'cmd_name', 'prefix')
-        if run_command is None:
-            final_cmd = [self.name]
-        else:
-            final_cmd = [run_command]
+        run_command = utils.parse_config(self.name, 'cmd_name', 'execute')
+        final_cmd = [run_command]
 
         #Set the IO in proper order into the beginning of the command line
         if '--!PE' in self.parsed_in_cmd:

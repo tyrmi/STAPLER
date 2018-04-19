@@ -5,10 +5,10 @@ from STAPLERerror import VirtualIOError
 from STAPLERerror import STAPLERerror
 import utils
 
-class fq2psmcfa(GenericBase):
+class psmc_fq2psmcfa(GenericBase):
     """Class for using fq2psmcfa.
 
-    Arguments:
+    Parameters:
     in_cmd: String containing a command line
     in_dir: Directory object containing input files
     out_dir: Directory object containing output files
@@ -25,39 +25,39 @@ class fq2psmcfa(GenericBase):
     in_cmd: Command entered by user.
     parsed_cmd: Final output command as option:value dict.
     file_names: Names of output files.
-    id: Bare name of input file (without the possible ending).
+    command_ids: File names of input file(s) with no file extensions.
 
 
     Methods:
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'fq2psmcfa'
+    name = 'psmc_fq2psmcfa'
     input_types = set(['.fq', '.fq.gz'])
     output_types = ['.psmcfa']
-    mandatory_args = ['-!i', '->']
+    hidden_mandatory_args = ['-!i', '->']
     user_mandatory_args = []
     remove_user_args = user_mandatory_args
-    optional_args = ['-c', '-n', '-v', '-x', '-q', '-g', '-s']
+    user_optional_args = ['-c', '-n', '-v', '-x', '-q', '-g', '-s']
     parallelizable = True
     help_description = '''
 This utility script is part of psmc software (.../psmc/utils/fq2psmcfa).
 '''
 
     def _select_IO(self, out_cmd, in_dir, out_dir):
-        """Returns a dict containing the proper IO commands.
+        """Infers the input and output file paths.
 
         This method must keep the directory objects up to date of the file
         edits!
 
-        Arguments:
+        Parameters:
         in_cmd: A dict containing the command line.
         in_dir: Input directory (instance of filetypes.Directory).
         out_dir: Output directory (instance of filetypes.Directory).
 
         Returns:
         out_cmd: Dict containing the output commands
-        file_names: Names of the output files.
+        command_identifier: Input file name based identifier for the current command
 
         Raises:
         VirtualIOError: No valid input file can be found.
@@ -65,16 +65,17 @@ This utility script is part of psmc software (.../psmc/utils/fq2psmcfa).
 
         IO_files = {}
         file_names = set()
-        for fl_name, users in in_dir.files.iteritems():
-            if self.name not in users:
-                if utils.splitext(fl_name)[-1] in self.input_types:
-                    IO_files['-!i'] = os.path.join(in_dir.path, fl_name)
-                    in_dir.use_file(fl_name, self.name)
+        for fl in in_dir.files:
+            if self.name not in fl.users:
+                if utils.splitext(fl.name)[-1] in self.input_types:
+                    IO_files['-!i'] = os.path.join(in_dir.path, fl.name)
+                    command_ids = [utils.infer_path_id(IO_files['-!i'])]
+                    in_dir.use_file(fl.name, self.name)
                     assert len(self.output_types) == 1, 'Several output ' \
                                                         'types, override ' \
                                                         'this method!'
 
-                    output_name = utils.splitext(fl_name)[0] + \
+                    output_name = utils.splitext(fl.name)[0] + \
                                   self.output_types[0]
                     output_path = os.path.join(out_dir.path, output_name)
                     IO_files['->'] = output_path
@@ -84,7 +85,7 @@ This utility script is part of psmc software (.../psmc/utils/fq2psmcfa).
         if not IO_files:
             raise VirtualIOError('No more unused input files')
         out_cmd.update(IO_files)
-        return out_cmd, file_names
+        return out_cmd, command_ids
 
     def get_cmd(self):
         """Returns the final command line.
@@ -92,11 +93,8 @@ This utility script is part of psmc software (.../psmc/utils/fq2psmcfa).
         Returns:
         final_cmd: List of command line produced by the object (line breaks not allowed within command lines!).
         """
-        run_command = utils.parse_config(self.name, 'cmd_name', 'prefix')
-        if run_command is None:
-            final_cmd = [self.name]
-        else:
-            final_cmd = [run_command]
+        run_command = utils.parse_config(self.name, 'cmd_name', 'execute')
+        final_cmd = [run_command]
         for arg, val in self.out_cmd.iteritems():
             if arg in ('-!i', '->'): continue
             final_cmd.append(arg + ' ' + val)
@@ -108,7 +106,7 @@ This utility script is part of psmc software (.../psmc/utils/fq2psmcfa).
 class psmc(GenericBase):
     """Class for using psmc.
 
-    Arguments:
+    Parameters:
     in_cmd: String containing a command line
     in_dir: Directory object containing input files
     out_dir: Directory object containing output files
@@ -125,7 +123,7 @@ class psmc(GenericBase):
     in_cmd: Command entered by user.
     parsed_cmd: Final output command as option:value dict.
     file_names: Names of output files.
-    id: Bare name of input file (without the possible ending).
+    command_ids: File names of input file(s) with no file extensions.
 
 
     Methods:
@@ -135,11 +133,11 @@ class psmc(GenericBase):
     name = 'psmc'
     input_types = set(['.psmcfa'])
     output_types = ['.psmc']
-    mandatory_args = ['-!i', '-o']
+    hidden_mandatory_args = ['-!i', '-o']
     user_mandatory_args = []
     remove_user_args = user_mandatory_args
-    optional_args = ['-p', '-t', '-N', '-r', '-c', '-i', '-T', '-b', '-S',
-                     '-d', '-D']
+    user_optional_args = ['-p', '-t', '-N', '-r', '-c', '-i', '-T', '-b', '-S',
+                          '-d', '-D']
     parallelizable = True
     help_description = '''
 The main psmc software. Tested with psmc version 0.6.5-r67.
@@ -150,19 +148,19 @@ history2ms tools can then be used to further work with the outputs.
 '''
 
     def _select_IO(self, out_cmd, in_dir, out_dir):
-        """Returns a dict containing the proper IO commands.
+        """Infers the input and output file paths.
 
         This method must keep the directory objects up to date of the file
         edits!
 
-        Arguments:
+        Parameters:
         in_cmd: A dict containing the command line.
         in_dir: Input directory (instance of filetypes.Directory).
         out_dir: Output directory (instance of filetypes.Directory).
 
         Returns:
         out_cmd: Dict containing the output commands
-        file_names: Names of the output files.
+        command_identifier: Input file name based identifier for the current command
 
         Raises:
         VirtualIOError: No valid input file can be found.
@@ -170,12 +168,13 @@ history2ms tools can then be used to further work with the outputs.
 
         IO_files = {}
         file_names = set()
-        for fl_name, users in in_dir.files.iteritems():
-            if self.name not in users:
-                if utils.splitext(fl_name)[-1] in self.input_types:
-                    IO_files['-!i'] = os.path.join(in_dir.path, fl_name)
-                    in_dir.use_file(fl_name, self.name)
-                    output_name = utils.splitext(fl_name)[0] + \
+        for fl in in_dir.files:
+            if self.name not in fl.users:
+                if utils.splitext(fl.name)[-1] in self.input_types:
+                    IO_files['-!i'] = os.path.join(in_dir.path, fl.name)
+                    command_ids = [utils.infer_path_id(IO_files['-!i'])]
+                    in_dir.use_file(fl.name, self.name)
+                    output_name = utils.splitext(fl.name)[0] + \
                                   self.output_types[0]
                     output_path = os.path.join(out_dir.path, output_name)
                     IO_files['-o'] = output_path
@@ -185,7 +184,7 @@ history2ms tools can then be used to further work with the outputs.
         if not IO_files:
             raise VirtualIOError('No more unused input files')
         out_cmd.update(IO_files)
-        return out_cmd, file_names
+        return out_cmd, command_ids
 
     def get_cmd(self):
         """Returns the final command line.
@@ -193,11 +192,8 @@ history2ms tools can then be used to further work with the outputs.
         Returns:
         final_cmd: List of command line produced by the object (line breaks not allowed within command lines!).
         """
-        run_command = utils.parse_config(self.name, 'cmd_name', 'prefix')
-        if run_command is None:
-            final_cmd = [self.name]
-        else:
-            final_cmd = [run_command]
+        run_command = utils.parse_config(self.name, 'cmd_name', 'execute')
+        final_cmd = [run_command]
         for arg, val in self.out_cmd.iteritems():
             if arg in ('-!i', '-o'): continue
             final_cmd.append(arg + ' ' + val)
@@ -209,7 +205,7 @@ history2ms tools can then be used to further work with the outputs.
 class psmc_plot(GenericBase):
     """Class for using psmc_plot.
 
-    Arguments:
+    Parameters:
     in_cmd: String containing a command line
     in_dir: Directory object containing input files
     out_dir: Directory object containing output files
@@ -226,7 +222,7 @@ class psmc_plot(GenericBase):
     in_cmd: Command entered by user.
     parsed_cmd: Final output command as option:value dict.
     file_names: Names of output files.
-    id: Bare name of input file (without the possible ending).
+    command_ids: File names of input file(s) with no file extensions.
 
 
     Methods:
@@ -236,31 +232,31 @@ class psmc_plot(GenericBase):
     name = 'psmc_plot'
     input_types = set(['.psmc'])
     output_types = ['.psmc_plot']
-    mandatory_args = ['-!i', '-!o']
+    hidden_mandatory_args = ['-!i', '-!o']
     user_mandatory_args = []
     remove_user_args = user_mandatory_args
-    optional_args = ['-u', '-s', '-X', '-x', '-Y', '-m', '-n', '-M', '-f',
-                     '-g', '-w', '-P', '-T', '-N', '-S', '-L', '-p', '-R',
-                     '-G']
+    user_optional_args = ['-u', '-s', '-X', '-x', '-Y', '-m', '-n', '-M', '-f',
+                          '-g', '-w', '-P', '-T', '-N', '-S', '-L', '-p', '-R',
+                          '-G']
     parallelizable = True
     help_description = '''
 This utility script is part of psmc software (.../psmc/utils/psmc_plot.pl).
 '''
 
     def _select_IO(self, out_cmd, in_dir, out_dir):
-        """Returns a dict containing the proper IO commands.
+        """Infers the input and output file paths.
 
         This method must keep the directory objects up to date of the file
         edits!
 
-        Arguments:
+        Parameters:
         in_cmd: A dict containing the command line.
         in_dir: Input directory (instance of filetypes.Directory).
         out_dir: Output directory (instance of filetypes.Directory).
 
         Returns:
         out_cmd: Dict containing the output commands
-        file_names: Names of the output files.
+        command_identifier: Input file name based identifier for the current command
 
         Raises:
         VirtualIOError: No valid input file can be found.
@@ -268,16 +264,17 @@ This utility script is part of psmc software (.../psmc/utils/psmc_plot.pl).
 
         IO_files = {}
         file_names = set()
-        for fl_name, users in in_dir.files.iteritems():
-            if self.name not in users:
-                if utils.splitext(fl_name)[-1] in self.input_types:
-                    IO_files['-!i'] = os.path.join(in_dir.path, fl_name)
-                    in_dir.use_file(fl_name, self.name)
+        for fl in in_dir.files:
+            if self.name not in fl.users:
+                if utils.splitext(fl.name)[-1] in self.input_types:
+                    IO_files['-!i'] = os.path.join(in_dir.path, fl.name)
+                    command_ids = [utils.infer_path_id(IO_files['-!i'])]
+                    in_dir.use_file(fl.name, self.name)
                     assert len(self.output_types) == 1, 'Several output ' \
                                                         'types, override ' \
                                                         'this method!'
 
-                    output_name = utils.splitext(fl_name)[0] + \
+                    output_name = utils.splitext(fl.name)[0] + \
                                   self.output_types[0]
                     output_path = os.path.join(out_dir.path, output_name)
                     IO_files['-!o'] = output_path
@@ -287,7 +284,7 @@ This utility script is part of psmc software (.../psmc/utils/psmc_plot.pl).
         if not IO_files:
             raise VirtualIOError('No more unused input files')
         out_cmd.update(IO_files)
-        return out_cmd, file_names
+        return out_cmd, command_ids
 
     def get_cmd(self):
         """Returns the final command line.
@@ -295,11 +292,8 @@ This utility script is part of psmc software (.../psmc/utils/psmc_plot.pl).
         Returns:
         final_cmd: List of command line produced by the object (line breaks not allowed within command lines!).
         """
-        run_command = utils.parse_config(self.name, 'cmd_name', 'prefix')
-        if run_command is None:
-            final_cmd = [self.name]
-        else:
-            final_cmd = [run_command]
+        run_command = utils.parse_config(self.name, 'cmd_name', 'execute')
+        final_cmd = [run_command]
         for arg, val in self.out_cmd.iteritems():
             if arg in ('-!i', '-!o'): continue
             final_cmd.append(arg + ' ' + val)
@@ -311,7 +305,7 @@ This utility script is part of psmc software (.../psmc/utils/psmc_plot.pl).
 class psmc2history(GenericBase):
     """Class for using psmc2history.
 
-    Arguments:
+    Parameters:
     in_cmd: String containing a command line
     in_dir: Directory object containing input files
     out_dir: Directory object containing output files
@@ -328,7 +322,7 @@ class psmc2history(GenericBase):
     in_cmd: Command entered by user.
     parsed_cmd: Final output command as option:value dict.
     file_names: Names of output files.
-    id: Bare name of input file (without the possible ending).
+    command_ids: File names of input file(s) with no file extensions.
 
 
     Methods:
@@ -338,29 +332,29 @@ class psmc2history(GenericBase):
     name = 'psmc2history'
     input_types = set(['.psmc'])
     output_types = ['.psmchistory']
-    mandatory_args = ['-!i', '->']
+    hidden_mandatory_args = ['-!i', '->']
     user_mandatory_args = []
     remove_user_args = user_mandatory_args
-    optional_args = ['-n']
+    user_optional_args = ['-n']
     parallelizable = True
     help_description = '''
 This utility script is part of psmc software (.../psmc/utils/psmc2history.pl).
 '''
 
     def _select_IO(self, out_cmd, in_dir, out_dir):
-        """Returns a dict containing the proper IO commands.
+        """Infers the input and output file paths.
 
         This method must keep the directory objects up to date of the file
         edits!
 
-        Arguments:
+        Parameters:
         in_cmd: A dict containing the command line.
         in_dir: Input directory (instance of filetypes.Directory).
         out_dir: Output directory (instance of filetypes.Directory).
 
         Returns:
         out_cmd: Dict containing the output commands
-        file_names: Names of the output files.
+        command_identifier: Input file name based identifier for the current command
 
         Raises:
         VirtualIOError: No valid input file can be found.
@@ -368,16 +362,17 @@ This utility script is part of psmc software (.../psmc/utils/psmc2history.pl).
 
         IO_files = {}
         file_names = set()
-        for fl_name, users in in_dir.files.iteritems():
-            if self.name not in users:
-                if utils.splitext(fl_name)[-1] in self.input_types:
-                    IO_files['-!i'] = os.path.join(in_dir.path, fl_name)
-                    in_dir.use_file(fl_name, self.name)
+        for fl in in_dir.files:
+            if self.name not in fl.users:
+                if utils.splitext(fl.name)[-1] in self.input_types:
+                    IO_files['-!i'] = os.path.join(in_dir.path, fl.name)
+                    command_ids = [utils.infer_path_id(IO_files['-!i'])]
+                    in_dir.use_file(fl.name, self.name)
                     assert len(self.output_types) == 1, 'Several output ' \
                                                         'types, override ' \
                                                         'this method!'
 
-                    output_name = utils.splitext(fl_name)[0] + \
+                    output_name = utils.splitext(fl.name)[0] + \
                                   self.output_types[0]
                     output_path = os.path.join(out_dir.path, output_name)
                     IO_files['->'] = output_path
@@ -387,7 +382,7 @@ This utility script is part of psmc software (.../psmc/utils/psmc2history.pl).
         if not IO_files:
             raise VirtualIOError('No more unused input files')
         out_cmd.update(IO_files)
-        return out_cmd, file_names
+        return out_cmd, command_ids
 
     def get_cmd(self):
         """Returns the final command line.
@@ -395,11 +390,8 @@ This utility script is part of psmc software (.../psmc/utils/psmc2history.pl).
         Returns:
         final_cmd: List of command line produced by the object (line breaks not allowed within command lines!).
         """
-        run_command = utils.parse_config(self.name, 'cmd_name', 'prefix')
-        if run_command is None:
-            final_cmd = [self.name]
-        else:
-            final_cmd = [run_command]
+        run_command = utils.parse_config(self.name, 'cmd_name', 'execute')
+        final_cmd = [run_command]
         for arg, val in self.out_cmd.iteritems():
             if arg in ('-!i', '->'): continue
             final_cmd.append(arg + ' ' + val)
@@ -408,10 +400,10 @@ This utility script is part of psmc software (.../psmc/utils/psmc2history.pl).
         return [' '.join(final_cmd)]
 
 
-class history2ms(GenericBase):
+class psmc_history2ms(GenericBase):
     """Class for using history2ms.
 
-    Arguments:
+    Parameters:
     in_cmd: String containing a command line
     in_dir: Directory object containing input files
     out_dir: Directory object containing output files
@@ -428,39 +420,39 @@ class history2ms(GenericBase):
     in_cmd: Command entered by user.
     parsed_cmd: Final output command as option:value dict.
     file_names: Names of output files.
-    id: Bare name of input file (without the possible ending).
+    command_ids: File names of input file(s) with no file extensions.
 
 
     Methods:
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'history2ms'
+    name = 'psmc_history2ms'
     input_types = set(['.psmchistory'])
     output_types = ['.ms_cmd']
-    mandatory_args = ['-!i', '->']
+    hidden_mandatory_args = ['-!i', '->']
     user_mandatory_args = []
     remove_user_args = user_mandatory_args
-    optional_args = ['-n', '-L', '-s', '-u', '-R', '-g', '-d', '-r', '-M']
+    user_optional_args = ['-n', '-L', '-s', '-u', '-R', '-g', '-d', '-r', '-M']
     parallelizable = True
     help_description = '''
 This utility script is part of psmc software (.../psmc/utils/history2ms.pl).
 '''
 
     def _select_IO(self, out_cmd, in_dir, out_dir):
-        """Returns a dict containing the proper IO commands.
+        """Infers the input and output file paths.
 
         This method must keep the directory objects up to date of the file
         edits!
 
-        Arguments:
+        Parameters:
         in_cmd: A dict containing the command line.
         in_dir: Input directory (instance of filetypes.Directory).
         out_dir: Output directory (instance of filetypes.Directory).
 
         Returns:
         out_cmd: Dict containing the output commands
-        file_names: Names of the output files.
+        command_identifier: Input file name based identifier for the current command
 
         Raises:
         VirtualIOError: No valid input file can be found.
@@ -468,16 +460,17 @@ This utility script is part of psmc software (.../psmc/utils/history2ms.pl).
 
         IO_files = {}
         file_names = set()
-        for fl_name, users in in_dir.files.iteritems():
-            if self.name not in users:
-                if utils.splitext(fl_name)[-1] in self.input_types:
-                    IO_files['-!i'] = os.path.join(in_dir.path, fl_name)
-                    in_dir.use_file(fl_name, self.name)
+        for fl in in_dir.files:
+            if self.name not in fl.users:
+                if utils.splitext(fl.name)[-1] in self.input_types:
+                    IO_files['-!i'] = os.path.join(in_dir.path, fl.name)
+                    command_ids = [utils.infer_path_id(IO_files['-!i'])]
+                    in_dir.use_file(fl.name, self.name)
                     assert len(self.output_types) == 1, 'Several output ' \
                                                         'types, override ' \
                                                         'this method!'
 
-                    output_name = utils.splitext(fl_name)[0] + \
+                    output_name = utils.splitext(fl.name)[0] + \
                                   self.output_types[0]
                     output_path = os.path.join(out_dir.path, output_name)
                     IO_files['->'] = output_path
@@ -487,7 +480,7 @@ This utility script is part of psmc software (.../psmc/utils/history2ms.pl).
         if not IO_files:
             raise VirtualIOError('No more unused input files')
         out_cmd.update(IO_files)
-        return out_cmd, file_names
+        return out_cmd, command_ids
 
     def get_cmd(self):
         """Returns the final command line.
@@ -495,11 +488,8 @@ This utility script is part of psmc software (.../psmc/utils/history2ms.pl).
         Returns:
         final_cmd: List of command line produced by the object (line breaks not allowed within command lines!).
         """
-        run_command = utils.parse_config(self.name, 'cmd_name', 'prefix')
-        if run_command is None:
-            final_cmd = [self.name]
-        else:
-            final_cmd = [run_command]
+        run_command = utils.parse_config(self.name, 'cmd_name', 'execute')
+        final_cmd = [run_command]
         for arg, val in self.out_cmd.iteritems():
             if arg in ('-!i', '->'): continue
             final_cmd.append(arg + ' ' + val)

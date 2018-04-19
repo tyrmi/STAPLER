@@ -1,57 +1,71 @@
-import bedtools
-import BLAST
 import bayenv2
+import bcftools
 import bowtie2
 import BWA
 import Custom
+import cutadapt
 import FASTX_toolkit
 import FastQC
 import freebayes
+import GATK
+import misc
 import Mosaik
-import novoalign
 import Picard
+import PGU
 import psmc
 import samtools
+import soap2
 import tabix
-import Trimmomatic
-import vcflib
+import trimmomatic
+import unix
 import VCFtools
 
 
-commands = {'ANY_TOOL':Custom.ANY_TOOL,
+commands = {'CUSTOM':Custom.Custom,
             'bayenv2':bayenv2.bayenv2,
-            'bedtools_coverageBed':bedtools.bedtools_coverageBed,
-            'bedtools_multiBamCov':bedtools.bedtools_multiBamCov,
+            'bcftools_call':bcftools.bcftools_call,
+            'bcftools_mpileup':bcftools.bcftools_mpileup,
             'bgzip':tabix.bgzip,
-            'blast':BLAST.blast,
             'bowtie2':bowtie2.bowtie2,
-            'bwa_mem':BWA.BWA_MEM,
-            'fastq_to_fasta':FASTX_toolkit.fastq_to_fasta,
-            'fastx_quality_stats':FASTX_toolkit.fastx_quality_stats,
-            'fastq_quality_boxplot_graph':FASTX_toolkit.fastq_quality_boxplot_graph,
-            'fastq_quality_trimmer':FASTX_toolkit.fastq_quality_trimmer,
-            'fastx_nucleotide_distribution_graph':FASTX_toolkit.fastx_nucleotide_distribution_graph,
-            'fastx_trimmer':FASTX_toolkit.fastx_trimmer,
-            'fastq_quality_filter':FASTX_toolkit.fastq_quality_filter,
+            'bwa_mem':BWA.bwa_mem,
+            'bwa_bwasw':BWA.bwa_bwasw,
+            'cutadapt':cutadapt.cutadapt,
+            'fastx_toolkit_fasta_formatter':FASTX_toolkit.fasta_formatter,
+            'fastx_toolkit_fasta_nucleotide_changer':FASTX_toolkit.fasta_nucleotide_changer,
+            'fastx_toolkit_fastq_quality_boxplot_graph.sh':FASTX_toolkit.fastq_quality_boxplot_graph,
+            'fastx_toolkit_fastq_quality_filter':FASTX_toolkit.fastq_quality_filter,
+            'fastx_toolkit_fastq_quality_trimmer':FASTX_toolkit.fastq_quality_trimmer,
+            'fastx_toolkit_fastq_to_fasta':FASTX_toolkit.fastq_to_fasta,
+            'fastx_toolkit_fastx_artifacts_filter':FASTX_toolkit.fastx_artifacts_filter,
+            'fastx_toolkit_fastx_clipper':FASTX_toolkit.fastx_clipper,
+            'fastx_toolkit_fastx_collapser':FASTX_toolkit.fastx_collapser,
+            'fastx_toolkit_fastx_nucleotide_distribution_graph.sh':FASTX_toolkit.fastx_nucleotide_distribution_graph,
+            'fastx_toolkit_fastx_quality_stats':FASTX_toolkit.fastx_quality_stats,
+            'fastx_toolkit_fastx_renamer':FASTX_toolkit.fastx_renamer,
+            'fastx_toolkit_fastx_reverse_complement':FASTX_toolkit.fastx_reverse_complement,
+            'fastx_toolkit_fastx_trimmer':FASTX_toolkit.fastx_trimmer,
             'fastqc':FastQC.fastqc,
             'freebayes':freebayes.freebayes,
-            'freebayes_parallel':freebayes.freebayes_parallel,
-            'fq2psmcfa':psmc.fq2psmcfa,
-            'history2ms':psmc.history2ms,
-            'MAD_MAX':Custom.MAD_MAX,
+            'psmc_fq2psmcfa':psmc.psmc_fq2psmcfa,
+            'gatk_ApplyBQSR':GATK.ApplyBQSR,
+            'gatk_BaseRecalibrator':GATK.BaseRecalibrator,
+            'gatk_GenotypeGVCFs':GATK.GenotypeGVCFs,
+            'gatk_HaplotypeCaller':GATK.HaplotypeCaller,
+            'gatk_IndexFeatureFile':GATK.IndexFeatureFile,
+            'psmc_history2ms':psmc.psmc_history2ms,
             'MosaikBuild':Mosaik.MosaikBuild,
             'MosaikAligner':Mosaik.MosaikAligner,
             'MosaikText':Mosaik.MosaikText,
-            'novoalign':novoalign.novoalign,
-            'ParalogAreaBEDmatic':Custom.ParalogAreaBEDmatic,
+            'PGU_vcf_allele_count_filter':PGU.PGU_vcf_allele_count_filter,
+            'PGU_MAD_MAX':PGU.PGU_MAD_MAX,
+            'PGU_ParalogAreaBEDmatic':PGU.PGU_ParalogAreaBEDmatic,
+            'PGU_variant_density_filter':PGU.PGU_variant_density_filter,
+            'PGU_vcf2fastq':PGU.PGU_vcf2fastq,
             'Picard_AddOrReplaceReadGroups':Picard.Picard_AddOrReplaceReadGroups,
             'Picard_CollectAlignmentSummaryMetrics':Picard.Picard_CollectAlignmentSummaryMetrics,
-            'Picard_CollectAlignmentSummaryMetrics_1.128':Picard.Picard_CollectAlignmentSummaryMetrics_1128,
             'Picard_CollectInsertSizeMetrics': Picard.Picard_CollectInsertSizeMetrics,
             'Picard_CollectWgsMetrics':Picard.Picard_CollectWgsMetrics,
-            'Picard_CompareSAMs':Picard.Picard_CompareSAMs,
             'Picard_MarkDuplicates':Picard.Picard_MarkDuplicates,
-            'Picard_MergeSamFiles':Picard.Picard_MergeSamFiles,
             'Picard_SamFormatConverter':Picard.Picard_SamFormatConverter,
             'Picard_SortSam':Picard.Picard_SortSam,
             'psmc':psmc.psmc,
@@ -59,10 +73,9 @@ commands = {'ANY_TOOL':Custom.ANY_TOOL,
             'psmc2history':psmc.psmc2history,
             'samtools_index':samtools.samtools_index,
             'samtools_rmdup':samtools.samtools_rmdup,
+            'soap2':soap2.soap2,
             'tabix':tabix.tabix,
-            'Trimmomatic':Trimmomatic.Trimmomatic,
-            'variant_density_filter':Custom.variant_density_filter,
-            'vcf2fastq':Custom.vcf2fastq,
-            'vcf_sort':Custom.vcf_sort,
-            'vcflib_vcfallelicprimitives':vcflib.vcflib_vcfallelicprimitives,
+            'trimmomatic':trimmomatic.trimmomatic,
+            'gzip':unix.gzip,
+            'vcf_sort':misc.vcf_sort,
             'vcftools':VCFtools.VCFtools}
