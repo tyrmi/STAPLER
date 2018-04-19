@@ -51,9 +51,8 @@ psmc_history2ms	history2ms	none	none
 psmc_plot	psmc_plot	none	none
 samtools_index	samtools index	none	none
 samtools_rmdup	samtools rmdup	none	none
-soap	soap	none	none
+soap2	soap	none	none
 tabix	tabix	none	none
 trimmomatic	trimmomatic	none	none
 vcf_sort	none	none	none
-vcflib_vcfallelicprimitives	vcfallelicprimitives	none	none
 vcftools	vcftools	none	none
