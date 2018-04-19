@@ -30,11 +30,11 @@ except SyntaxError:
 VERSION = '18.04.19'
 NAME = 'STAPLER'
 ART_NAME = '''
-       _____________   ___  __   _______
-      / __/_  __/ _ | / _ \\/ /  / __/ _ \\
-     _\\ \\  / / / __ |/ ___/ /__/ _// , _/
-    /___/ /_/ /_/ |_/_/  /____/___/_/|_|
-Simple and swifT bioinformAtics PipeLine makER
+        _____________   ___  __   _______
+       / __/_  __/ _ | / _ \\/ /  / __/ _ \\
+      _\\ \\  / / / __ |/ ___/ /__/ _// , _/
+     /___/ /_/ /_/ |_/_/  /____/___/_/|_|
+Simple and swifT bioinformAtics PipeLine manageER
 '''
 AUTHOR = 'Jaakko Tyrmi'
 START_TIME = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
