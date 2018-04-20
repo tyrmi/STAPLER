@@ -43,6 +43,16 @@ unix sort command is a standard command line tool which should be available in
 any unix and unix-like platform.
 '''
 
+    @classmethod
+    def validate_tool_config(cls):
+        """Checks if the current tool can be run as defined in config.txt
+
+        """
+
+        return ['OK', 'OK', 'OK']
+
+
+
     def get_cmd(self):
         """Returns the final command line.
 
