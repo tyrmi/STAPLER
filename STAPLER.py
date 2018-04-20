@@ -350,7 +350,7 @@ def print_specific_help(tool_name):
     print '\nAccepted input types:\n{0}'.format(str(list(cmd.input_types)))
     print '\nOutput types:\n{0}'.format(str(cmd.output_types))
     print '\nMandatory arguments:\n{0}'.format(str(cmd.user_mandatory_args))
-    print '\nOptional arguments:\n{0}'.format(str(cmd.optional_args))
+    print '\nOptional arguments:\n{0}'.format(str(cmd.user_optional_args))
     print '\nParallelizable:\n{0}'.format(str(cmd.parallelizable))
     print '\nAdditional description:\n{0}'.format(str(cmd.help_description))
     print ''
