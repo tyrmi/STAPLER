@@ -1,8 +1,8 @@
 STAPLER
 
 JOB NAME: GATK_SNP_CALL
-STARTING POINT DIR: /wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/GATK_WORKFLOW/STAPLER_GATK_RECALIBRATION_SNP_CALL_5_Picard_AddOrReplaceReadGroups
-PROJECT DIR: /wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/GATK_WORKFLOW
+STARTING POINT DIR: /path/to/EXAMPLE_DIRECTORY/GATK_WORKFLOW/STAPLER_GATK_RECALIBRATION_SNP_CALL_5_Picard_AddOrReplaceReadGroups
+PROJECT DIR: /path/to/EXAMPLE_DIRECTORY/GATK_WORKFLOW
 
 RESOURCE MANAGER:
 #!/bin/bash -l
@@ -14,8 +14,8 @@ RESOURCE MANAGER:
 RESOURCE MANAGER END:
 
 COMMANDS:
-gatk_BaseRecalibrator -R /wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta --!known-sites /wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/GATK_WORKFLOW/STAPLER_GATK_RECALIBRATION_SNP_CALL_6_freebayes
-gatk_ApplyBQSR -R /wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta
-gatk_HaplotypeCaller -R /wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta --!input_files_per_command all
+gatk_BaseRecalibrator -R /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta --!known-sites /path/to/EXAMPLE_DIRECTORY/GATK_WORKFLOW/STAPLER_GATK_RECALIBRATION_SNP_CALL_6_freebayes
+gatk_ApplyBQSR -R /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta
+gatk_HaplotypeCaller -R /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta --!input_files_per_command all
 vcftools --recode --minDP 3 --max-missing 0.7
 COMMANDS END:

@@ -1,8 +1,8 @@
 STAPLER
 
 JOB NAME: SAMTOOLS_RUN
-STARTING POINT DIR: /wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/RAW_DATA
-PROJECT DIR: /wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/SAMTOOLS_RUN
+STARTING POINT DIR: /path/to/EXAMPLE_DIRECTORY/RAW_DATA
+PROJECT DIR: /path/to/EXAMPLE_DIRECTORY/SAMTOOLS_RUN
 
 RESOURCE MANAGER:
 #!/bin/bash -l
@@ -14,12 +14,12 @@ RESOURCE MANAGER:
 RESOURCE MANAGER END:
 
 COMMANDS:
-bwa_mem --!read_format _R? --!reference_path /wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta
+bwa_mem --!read_format _R? --!reference_path /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta
 Picard_SamFormatConverter -!in_type .sam -!out_type .bam
 Picard_SortSam -SORT_ORDER coordinate
 Picard_MarkDuplicates -REMOVE_DUPLICATES true
-Picard_AddOrReplaceReadGroups -RGPL !value_table:/wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGPL -RGLB !value_table:/wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGLB -RGSM !value_table:/wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGSM -RGPU !value_table:/wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGPU -RGID !value_table:/wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGID
+Picard_AddOrReplaceReadGroups -RGPL !value_table:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGPL -RGLB !value_table:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGLB -RGSM !value_table:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGSM -RGPU !value_table:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGPU -RGID !value_table:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGID
 samtools_index
-bcftools_mpileup -f /wrk/tyrmi/DONOTREMOVE/STAPLER_example_data_prep/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta --!input_files_per_command all -Ob
+bcftools_mpileup -f /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta --!input_files_per_command all -Ob
 bcftools_call -Ov -m
 COMMANDS END:
