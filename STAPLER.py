@@ -7,6 +7,7 @@ import os
 import sys
 import shutil
 import string
+import subprocess
 import time
 
 from collections import namedtuple
@@ -445,9 +446,16 @@ def validate_config_file(args):
         else:
             print 'OK. Continuing validation of supported commands...\n'
 
+    # Check if modules are available on current platform
+    try:
+        subprocess.check_call('module')
+        modules_available = True
+    except subprocess.CalledProcessError:
+        modules_available = False
 
     # Test each command on each row of config.txt
     print 'Testing the config.txt commands...'
+    devnull = open(os.devnull, 'wb')
     max_width = max(map(len, config_file_defined_commands))
     i = 0
     results = []
@@ -469,7 +477,11 @@ def validate_config_file(args):
     print '\nNONE: The execute field is "none" in the config.txt'
     print 'OK:   Command has run perfectly.'
     print 'FAIL: Running the command has failed.'
-    print '- :   Unable to test command due to failure in load_module'
+    print '- :   Unable to test command due to failure in load_module\n'
+    if modules_available:
+        print 'Notice! As your platform seems to support modules, ' \
+              'it is strongly advisable to run "module reset" before using ' \
+              'the --VALIDATE_CONFIG feature to generate reliable results.\n'
 
 def update_config_file(commands_to_add, commands_to_remove):
     """Creates an updated version of current config.txt file
@@ -770,7 +782,7 @@ def parse_input_file(command_line_parameters):
         if i == 1:
             if ln != 'STAPLEFILE':
                 raise STAPLERerror.STAPLERerror(
-                    'Input file does not start with "STAPLER"-row')
+                    'Input file does not start with "STAPLEFILE"-row')
             else:
                 continue
         if not ln:
