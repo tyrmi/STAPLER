@@ -14,6 +14,7 @@ RESOURCE MANAGER:
 RESOURCE MANAGER END:
 
 COMMANDS:
+trimmomatic -threads 1 --!SE -TRAILING 3
 bwa_mem --!read_format _R? --!reference_path /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta
 Picard_SamFormatConverter -!in_type .sam -!out_type .bam
 Picard_SortSam -SORT_ORDER coordinate

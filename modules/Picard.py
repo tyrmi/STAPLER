@@ -462,6 +462,9 @@ class Picard_MarkDuplicates(Picard_SuperClass):
     parallelizable = True
     help_description = '''
 Tested with Picard 2.13.
+
+The mandatory metrics file is written to the output directory along with the
+output bam/sam file.
     '''
 
     def _select_IO(self, out_cmd, in_dir, out_dir):

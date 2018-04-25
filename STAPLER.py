@@ -1437,7 +1437,8 @@ STAPLERerror: Command type is not supported.
 Side-effects:
 prints: Numbers of commands that have failed during runtime.
 """
-    dir_stack_index = 0
+    prev_command_had_output_dir = True
+    dir_stack_index = -1
     command_index = 0
     for current_command in input_file_parameters.commands:
         # Skip over SPLIT commands
@@ -1445,6 +1446,9 @@ prints: Numbers of commands that have failed during runtime.
             continue
 
         command_index += 1
+
+        if prev_command_had_output_dir:
+            dir_stack_index += 1
 
         # Keep track of number of commands created in the current workflow step
         number_of_successful_commands = 0
@@ -1455,8 +1459,11 @@ prints: Numbers of commands that have failed during runtime.
         in_dir = dir_stack[dir_stack_index]
         if command_type.require_output_dir:
             out_dir = dir_stack[dir_stack_index+1]
+            prev_command_had_output_dir = True
+            no_command_has_required_output_dir = False
         else:
             out_dir = in_dir
+            prev_command_had_output_dir = False
 
         # Read files until command class finds no more valid input files
         number_of_potential_commands = 0
@@ -1488,9 +1495,7 @@ prints: Numbers of commands that have failed during runtime.
                         number_of_potential_commands - number_of_successful_commands,
                         number_of_potential_commands)
 
-        # Increment index if command requires output directory
-        if command_type.require_output_dir:
-            dir_stack_index += 1
+
 
 
 def log_dir_stacks_contents(dir_stacks):
