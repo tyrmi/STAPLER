@@ -32,7 +32,7 @@ class psmc_fq2psmcfa(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'psmc_fq2psmcfa'
+    name = 'stapler_psmc_fq2psmcfa'
     input_types = set(['.fq', '.fq.gz'])
     output_types = ['.psmcfa']
     hidden_mandatory_args = ['-!i', '->']
@@ -130,7 +130,7 @@ class psmc(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'psmc'
+    name = 'stapler_psmc'
     input_types = set(['.psmcfa'])
     output_types = ['.psmc']
     hidden_mandatory_args = ['-!i', '-o']
@@ -229,7 +229,7 @@ class psmc_plot(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'psmc_plot'
+    name = 'stapler_psmc_plot'
     input_types = set(['.psmc'])
     output_types = ['.psmc_plot']
     hidden_mandatory_args = ['-!i', '-!o']
@@ -329,7 +329,7 @@ class psmc2history(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'psmc2history'
+    name = 'stapler_psmc2history'
     input_types = set(['.psmc'])
     output_types = ['.psmchistory']
     hidden_mandatory_args = ['-!i', '->']
@@ -427,7 +427,7 @@ class psmc_history2ms(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'psmc_history2ms'
+    name = 'stapler_psmc_history2ms'
     input_types = set(['.psmchistory'])
     output_types = ['.ms_cmd']
     hidden_mandatory_args = ['-!i', '->']

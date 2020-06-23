@@ -34,7 +34,7 @@ class bgzip(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'bgzip'
+    name = 'stapler_bgzip'
     input_types = set(['.vcf', '.bcf', '.gff', '.bed', '.sam', '.vcf.gz'])
     output_types = ['.vcf', '.gff', '.bed', '.sam', '.vcf.gz']
     hidden_mandatory_args = ['-!i', '-!o', '-!d']
@@ -177,7 +177,7 @@ class tabix(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'tabix'
+    name = 'stapler_tabix'
     input_types = set(['.vcf.gz', '.bcf.gz'])
     output_types = []
     hidden_mandatory_args = ['-!i']

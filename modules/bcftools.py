@@ -33,7 +33,7 @@ class bcftools_call(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'bcftools_call'
+    name = 'stapler_bcftools_call'
     #Accept all defined types:
     input_types = {'.vcf', '.vcf.gz', '.bcf', '.bcf.gz'}
     output_types = ['.vcf', '.bcf']
@@ -159,7 +159,7 @@ class bcftools_mpileup(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'bcftools_mpileup'
+    name = 'stapler_bcftools_mpileup'
     #Accept all defined types:
     input_types = {'.bam'}
     output_types = ['.vcf', '.bcf']

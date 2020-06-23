@@ -19,7 +19,7 @@ class MosaikBuild(GenericBase):
     optional_args: Args that may be part of the command line.
     """
 
-    name = 'MosaikBuild'
+    name = 'stapler_MosaikBuild'
     input_types = {'.fastq'}
     output_types = ['.dat']
     hidden_mandatory_args = ['-q', '-q2', '-out']
@@ -133,7 +133,7 @@ class MosaikAligner(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'MosaikAligner'
+    name = 'stapler_MosaikAligner'
     #Accept all defined types:
     input_types = {'.dat'}
     output_types = ['.dat']
@@ -224,7 +224,7 @@ class MosaikText(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'MosaikText'
+    name = 'stapler_MosaikText'
     #Accept all defined types:
     input_types = {'.dat'}
     output_types = ['.sam', '.axt', '.bam', '.bed', '.eland']

@@ -178,7 +178,7 @@ class fasta_formatter(GenericBase):
     _parse_id: Returns the bare input file name
     """
 
-    name = 'fastx_toolkit_fasta_formatter'
+    name = 'stapler_fastx_toolkit_fasta_formatter'
     input_types = {'.fasta', '.fastq'}
     output_types = ['.fasta', '.fastq', '.tab']
     hidden_mandatory_args = ['-i', '-o']
@@ -264,7 +264,7 @@ class fasta_nucleotide_changer(fastx_toolkit_generic_compressable_fastx):
     _parse_id: Returns the bare input file name
     """
 
-    name = 'fastx_toolkit_fasta_nucleotide_changer'
+    name = 'stapler_fastx_toolkit_fasta_nucleotide_changer'
     input_types = {'.fasta', '.fastq'}
     output_types = ['.fasta', '.fastq']
     hidden_mandatory_args = ['-i', '-o']
@@ -297,7 +297,7 @@ class fastq_quality_boxplot_graph(GenericBase):
     _parse_id: Returns the bare input file name
     """
 
-    name = 'fastx_toolkit_fastq_quality_boxplot_graph.sh'
+    name = 'stapler_fastx_toolkit_fastq_quality_boxplot_graph.sh'
     input_types = {'.fastx_quality_stats'}
     output_types = ['.png']
     hidden_mandatory_args = ['-i', '-o']
@@ -349,7 +349,7 @@ class fastq_quality_filter(fastx_toolkit_generic_compressable_fastx):
     _parse_id: Returns the bare input file name
     """
 
-    name = 'fastx_toolkit_fastq_quality_filter'
+    name = 'stapler_fastx_toolkit_fastq_quality_filter'
     input_types = {'.fasta', '.fastq'}
     output_types = ['.fasta', '.fastq']
     hidden_mandatory_args = ['-i', '-o', '-q', '-p']
@@ -381,7 +381,7 @@ class fastq_quality_trimmer(fastx_toolkit_generic_compressable_fastx):
     _parse_id: Returns the bare input file name
     """
 
-    name = 'fastx_toolkit_fastq_quality_trimmer'
+    name = 'stapler_fastx_toolkit_fastq_quality_trimmer'
     input_types = {'.fasta', '.fastq'}
     output_types = ['.fasta', '.fastq']
     hidden_mandatory_args = ['-i', '-o', '-t']
@@ -418,7 +418,7 @@ class fastq_to_fasta(fastx_toolkit_generic_compressable):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'fastx_toolkit_fastq_to_fasta'
+    name = 'stapler_fastx_toolkit_fastq_to_fasta'
     input_types = {'.fastq'}
     output_types = ['.fasta']
     hidden_mandatory_args = ['-i', '-o']
@@ -453,7 +453,7 @@ class fastx_artifacts_filter(fastx_toolkit_generic_compressable_fastx):
     _parse_id: Returns the bare input file name
     """
 
-    name = 'fastx_toolkit_fastx_artifacts_filter'
+    name = 'stapler_fastx_toolkit_fastx_artifacts_filter'
     input_types = {'.fasta', '.fastq'}
     output_types = ['.fasta', '.fastq']
     hidden_mandatory_args = ['-i', '-o']
@@ -486,7 +486,7 @@ class fastx_clipper(fastx_toolkit_generic_compressable_fastx):
     _parse_id: Returns the bare input file name
     """
 
-    name = 'fastx_toolkit_fastx_clipper'
+    name = 'stapler_fastx_toolkit_fastx_clipper'
     input_types = {'.fasta', '.fastq'}
     output_types = ['.fasta', '.fastq']
     hidden_mandatory_args = ['-i', '-o']
@@ -519,7 +519,7 @@ class fastx_collapser(fastx_toolkit_generic_compressable_fastx):
     _parse_id: Returns the bare input file name
     """
 
-    name = 'fastx_toolkit_fastx_collapser'
+    name = 'stapler_fastx_toolkit_fastx_collapser'
     input_types = {'.fasta', '.fastq'}
     output_types = ['.fasta', '.fastq']
     hidden_mandatory_args = ['-i', '-o']
@@ -551,7 +551,7 @@ class fastx_nucleotide_distribution_graph(fastq_quality_boxplot_graph):
     _set_IO: Determines the output file name and type.
     _parse_id: Returns the bare input file name
     """
-    name = 'fastx_toolkit_fastx_nucleotide_distribution_graph.sh'
+    name = 'stapler_fastx_toolkit_fastx_nucleotide_distribution_graph.sh'
 
 
 class fastx_quality_stats(GenericBase):
@@ -576,7 +576,7 @@ class fastx_quality_stats(GenericBase):
     _parse_id: Returns the bare input file name
     """
 
-    name = 'fastx_toolkit_fastx_quality_stats'
+    name = 'stapler_fastx_toolkit_fastx_quality_stats'
     input_types = {'.fasta', '.fastq'}
     output_types = ['.fastx_quality_stats']
     hidden_mandatory_args = ['-i', '-o']
@@ -607,7 +607,7 @@ class fastx_renamer(fastx_toolkit_generic_compressable_fastx):
     _parse_id: Returns the bare input file name
     """
 
-    name = 'fastx_toolkit_fastx_trimmer'
+    name = 'stapler_fastx_toolkit_fastx_trimmer'
     input_types = {'.fasta', '.fastq'}
     output_types = ['.fasta', '.fastq']
     hidden_mandatory_args = ['-i', '-o']
@@ -640,7 +640,7 @@ class fastx_reverse_complement(fastx_toolkit_generic_compressable_fastx):
     _parse_id: Returns the bare input file name
     """
 
-    name = 'fastx_toolkit_fastx_reverse_complement'
+    name = 'stapler_fastx_toolkit_fastx_reverse_complement'
     input_types = {'.fasta', '.fastq'}
     output_types = ['.fasta', '.fastq']
     hidden_mandatory_args = ['-i', '-o']
@@ -672,7 +672,7 @@ class fastx_trimmer(fastx_toolkit_generic_compressable_fastx):
     _parse_id: Returns the bare input file name
     """
 
-    name = 'fastx_toolkit_fastx_trimmer'
+    name = 'stapler_fastx_toolkit_fastx_trimmer'
     input_types = {'.fasta', '.fastq'}
     output_types = ['.fasta', '.fastq']
     hidden_mandatory_args = ['-i', '-o']

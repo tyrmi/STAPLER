@@ -1,5 +1,4 @@
-import fnmatch
-import logging
+import bisect
 import os
 
 import STAPLERerror
@@ -43,6 +42,8 @@ class Directory():
         """
         self.path = path.strip()
         self.files = []
+        self._unused_files = {}
+        self._sorted_file_names = []
         self.file_names = {}
         self._file_pairs = {}
         self.entry_types = set()
@@ -91,7 +92,9 @@ class Directory():
         absolute_path = os.path.join(self.path, fl_name)
         assert os.path.isfile(absolute_path)
         new_file = File(os.path.join(self.path, fl_name), fl_name, file_id)
-        self.files.append(new_file)
+        insert_pos = bisect.bisect_left(self._sorted_file_names ,fl_name)
+        self._sorted_file_names.insert(insert_pos, fl_name)
+        self.files.insert(insert_pos, new_file)
         self.file_names[fl_name] = new_file
         self.entry_types.add(utils.splitext(fl_name)[1])
 
@@ -131,7 +134,9 @@ class Directory():
                                             'are automatically inferred by '
                                             'STAPLER.'.format(fl_name, self.path))
         new_file = File(os.path.join(self.path, fl_name), fl_name, file_id)
-        self.files.append(new_file)
+        insert_pos = bisect.bisect_left(self._sorted_file_names, fl_name)
+        self._sorted_file_names.insert(insert_pos, fl_name)
+        self.files.insert(insert_pos, new_file)
         self.file_names[fl_name] = new_file
         self.entry_types.add(utils.splitext(fl_name)[1])
 
@@ -150,6 +155,8 @@ class Directory():
         :return:
         """
         self.files.remove(self.file_names[fl_name])
+        for k in self._unused_files.keys():
+            self._unused_files[k].remove(self.file_names[fl_name])
         del self.file_names[fl_name]
 
         # Check if any files remain in the dir with the current file
@@ -160,7 +167,6 @@ class Directory():
                 return
         # No more files with the current extension exist in the dir,
         # remove the extension from entry_types set.
-        print self.entry_types
         self.entry_types.remove(extension)
 
 
@@ -204,6 +210,28 @@ class Directory():
         user_tool_name: Name of the user tool.
         """
         self.file_names[fl_name].users.append(user_tool_name)
+        self._unused_files[user_tool_name].remove(self.file_names[fl_name])
+
+    def unused_files(self, user_tool_name, allowed_file_extensions=None):
+        """Provides a list of files unused by the command requesting the list.
+
+        Provides a faster way for command tools to search for suitable input
+        files (correct file extension, unused) as used files are removed
+        automatically.
+
+        Parameters:
+        user_tool_name: Name of the user tool.
+        allowed_file_extensions: List or set of allowed file extensions.
+        Returns:
+        List of files not used by the tool.
+            """
+        if user_tool_name not in self._unused_files:
+            self._unused_files[user_tool_name] = list(self.files)
+            # In addition, omit files containing uninteresting file extensions:
+            if allowed_file_extensions is not None:
+                self._unused_files[user_tool_name] = [fl for fl in self._unused_files[user_tool_name]
+                                                      if utils.splitext(fl.abs_path)[1] in allowed_file_extensions]
+        return self._unused_files[user_tool_name]
 
 
     def get_absolute_file_path(self, file_name):

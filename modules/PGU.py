@@ -3,6 +3,7 @@ import subprocess
 
 from GenericBase import GenericBase
 from STAPLERerror import VirtualIOError
+from STAPLERerror import NotConfiguredError
 import utils
 
 
@@ -100,7 +101,7 @@ class PGU_vcf_allele_count_filter(PGU):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'PGU_vcf_allele_count_filter'
+    name = 'stapler_PGU_vcf_allele_count_filter'
     input_types = set(['.vcf'])
     output_types = ['.vcf']
     hidden_mandatory_args = ['-i', '-o']
@@ -142,7 +143,7 @@ class PGU_MAD_MAX(PGU):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'PGU_MAD_MAX'
+    name = 'stapler_PGU_MAD_MAX'
     input_types = set(['.coverageBed_out'])
     output_types = ['.bed']
     hidden_mandatory_args = ['-i', '-o']
@@ -158,7 +159,7 @@ MAD_MAX is available from https://github.com/tyrmi/PGU
 
 
 class PGU_ParalogAreaBEDmatic(PGU):
-    name = 'PGU_ParalogAreaBEDmatic'
+    name = 'stapler_PGU_ParalogAreaBEDmatic'
     #Accept all defined types:
     input_types = set(['.vcf'])
     output_types = ['.bed']
@@ -244,7 +245,7 @@ class PGU_vcf2fastq(PGU):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'PGU_vcf2fastq'
+    name = 'stapler_PGU_vcf2fastq'
     input_types = set(['.vcf'])
     output_types = ['.fq']
     hidden_mandatory_args = ['-i', '-o']
@@ -286,7 +287,7 @@ class PGU_variant_density_filter(PGU):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'PGU_variant_density_filter'
+    name = 'stapler_PGU_variant_density_filter'
     #Accept all defined types:
     input_types = {'.vcf'}
     output_types = ['.vcf']

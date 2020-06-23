@@ -39,8 +39,8 @@ class gzip(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'gzip'
-    input_types = set([])
+    name = 'stapler_gzip'
+    input_types = set(['.gz'])
     output_types = []
     require_output_dir = False
     hidden_mandatory_args = ['-!i']
@@ -53,9 +53,9 @@ class gzip(GenericBase):
                           '--recursive', '--verbose']
     parallelizable = True
     help_description = '''
-This implementation of gzip compresses or decompresses the contents of input 
-directory. (De)Compressed files replace the input files in the input directory,
-therefore output directory is not created.
+STAPLER uses gzip to compresses or decompress the contents of input 
+directory. (De)Compressed files replace the input files in the input 
+directory (!!!), therefore output directory is not created.
 
 When compressing files any file type is a valid input. When decompressing
 (i.e. when -d, --uncompress or --decompress parameters are present) only files

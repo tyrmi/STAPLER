@@ -33,7 +33,7 @@ class VCFtools(GenericBase):
     """
     #Here the input command dictionary contains list as a value!
 
-    name = 'vcftools'
+    name = 'stapler_vcftools'
     #Accept all defined types:
     input_types = {'.vcf', '.bcf', '.vcf.gz'}
     output_types = ['.vcf', '.bcf', '.vcf.gz']
@@ -212,7 +212,7 @@ original manual!
             if arg not in self.hidden_mandatory_args:
                 #Values are lists in this case
                 for v in value:
-                    if v.startswith('!value_table'):
+                    if v.startswith('$VALUE_TABLE'):
                         new_value = self._parse_value_table(v)
                         out_cmd[arg] = new_value
         return out_cmd

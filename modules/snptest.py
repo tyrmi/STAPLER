@@ -5,8 +5,8 @@ from STAPLERerror import STAPLERerror
 from STAPLERerror import VirtualIOError
 import utils
 
-class bowtie2(GenericBase):
-    """Class for using bowtie2 algorithm.
+class snptest(GenericBase):
+    """Class for using SNPTEST.
 
     Parameters:
     in_cmd: String containing a command line
@@ -32,44 +32,23 @@ class bowtie2(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'stapler_bowtie2'
-    input_types = {'.fastq', '.fastq.gz', '.fastq.bz2', '.fq', '.fq.gz', '.fq.bz2'}
+    name = 'stapler_snptest'
+    input_types = {'.gen', '.gen.gz', '.sample', '.sample.gz'}
     output_types = ['.sam']
-    hidden_mandatory_args = ['-S']
-    user_mandatory_args = ['-x']
-    remove_user_args = ['--!read_format']
-    user_optional_args = ['-1', '-2', '-q', '-s', '-u', '-5',
-                          '-3', '--phred33', '--phred64', '--solexa-quals',
-                          '--int-quals', '--end-to-end', '--very-fast', '--fast',
-                          '--sensitive', '--very-sensitive', '--very-fast-local',
-                          '--fast-local', '--sensitive-local',
-                          '--very-sensitive-local', '-N', '-L', '-i', '--n-ceil',
-                          '--dpad', '--gbar', '--ignore-quals', '--nofw', '--norc',
-                          '--no-1mm-upfront', '--end-to-end', '--local', '--ma',
-                          '--mp', '--np', '--rdg', '--rfg', '--score-min', '-k',
-                          '-a', '-D', '-R', '-I', '--minins', '-X', '--maxins',
-                          '--fr', '--rf', '--ff', '--no-mixed', '--no-discordant',
-                          '--dovetail', '--no-contain', '--no-overlap', '-t',
-                          '--time', '--un', '--un-gz', '--un-bz2', '--un-lz4',
-                          '--al', '--al-gz', '--al-bz2', '--al-lz4', '--un-conc',
-                          '--un-conc-gz', '--un-conc-bz2', '--un-conc-lz4',
-                          '--al-conc', '--al-conc-gz', '--al-conc-bz2',
-                          '--al-conc-lz4', '--quiet', '--met-file', '--met-stderr',
-                          '--met', '--no-unal', '--no-hd', '--no-sq', '--rg-id',
-                          '--rg', '--omit-sec-seq', '-o', '--offrate', '-p',
-                          '--threads', '--reorder', '--mm', '--qc-filter',
-                          '--seed', '--non-deterministic', '--!read_format']
+    hidden_mandatory_args = ['-a', '-o']
+    hidden_optional_args = ['-2', '-b']
+    user_mandatory_args = ['-D']
+    remove_user_args = []
+    user_optional_args = ['--!read_format', '-l', '-m', '-M', '-n', '-p', '-r',
+                          '-R', '-t', '-v', '-x']
     parallelizable = True
     help_description = '''
-Both paired-end and single-end data can be used as input but not at the same
-time. Paired-end mode is used when --!read_format argument is present in the
-command line, otherwise single-end data is assumed.
+Tested with SNPTEST version 2.5.1.
 
---!read_format indicates the format in which read number is shown in
-file names. For instance if you have paired end files samplename_R1 and
-samplename_R2, the --!read_format argument should look like this:
---!read_format _R?
-    '''
+Required input for SNPTEST is a .gen file containing genotype data and .sample 
+file containing phenotype information. When used with STAPLER, the -data argument 
+is mandatory, but only the path to .sample file should be defined.
+'''
 
     def _select_IO(self, out_cmd, in_dir, out_dir):
         """Infers the input and output file paths.
@@ -90,6 +69,7 @@ samplename_R2, the --!read_format argument should look like this:
         VirtualIOError: No valid input file can be found.
         """
         command_ids = []
+
         read_format = ''
         for arg, value in out_cmd.iteritems():
             if arg == '--!read_format':
@@ -109,8 +89,7 @@ samplename_R2, the --!read_format argument should look like this:
         IO_files = {}
         #Handle paired end files
         if read_format:
-            paired_files = in_dir.file_pairs(pattern=self.parsed_in_cmd[
-                '--!read_format'],
+            paired_files = in_dir.file_pairs(pattern=self.parsed_in_cmd['--!read_format'],
                                              user=self.name,
                                              file_formats=list(self.input_types),
                                              exclusion_iterable=['pairless',
@@ -120,12 +99,11 @@ samplename_R2, the --!read_format argument should look like this:
                 pair1, pair2 = pair
                 if self.name not in in_dir.file_names[pair1].users and self.name not in in_dir.file_names[pair2].users:
                     #Infer inputs
-                    IO_files['-1'] = os.path.join(in_dir.path, pair1)
-                    command_ids.append(utils.infer_path_id(IO_files['-1']))
+                    IO_files['-a'] = os.path.join(in_dir.path, pair1)
+                    command_ids.append(utils.infer_path_id(IO_files['-a']))
                     in_dir.use_file(pair1, self.name)
-
-                    IO_files['-2'] = os.path.join(in_dir.path, pair2)
-                    command_ids.append(utils.infer_path_id(IO_files['-2']))
+                    IO_files['-b'] = os.path.join(in_dir.path, pair2)
+                    command_ids.append(utils.infer_path_id(IO_files['-b']))
                     in_dir.use_file(pair2, self.name)
 
                     #Infer output
@@ -135,17 +113,19 @@ samplename_R2, the --!read_format argument should look like this:
                                                       '')
                     output_name += self.output_types[0]
                     output_path = os.path.join(out_dir.path, output_name)
-                    IO_files['-S'] = output_path
+                    IO_files['-o'] = output_path
                     file_names.add(output_name)
                     out_dir.add_file(output_name)
+                    IO_files['-2'] = output_path + '.unpaired'
                     break
+
         else: #Handle single end files
             file_names = set()
             for fl in in_dir.files:
                 if self.name not in fl.users:
                     if utils.splitext(fl.name)[-1] in self.input_types:
-                        IO_files['-q'] = os.path.join(in_dir.path, fl.name)
-                        command_ids.append(utils.infer_path_id(IO_files['-q']))
+                        IO_files['-a'] = os.path.join(in_dir.path, fl.name)
+                        command_ids.append(utils.infer_path_id(IO_files['-a']))
                         in_dir.use_file(fl.name, self.name)
                         assert len(self.output_types) == 1, 'Several output ' \
                                                             'types, override ' \
@@ -154,7 +134,7 @@ samplename_R2, the --!read_format argument should look like this:
                         output_name = utils.splitext(fl.name)[0] + \
                                       self.output_types[0]
                         output_path = os.path.join(out_dir.path, output_name)
-                        IO_files['-S'] = output_path
+                        IO_files['-o'] = output_path
                         file_names.add(output_name)
                         out_dir.add_file(output_name)
                         break
@@ -164,15 +144,3 @@ samplename_R2, the --!read_format argument should look like this:
         out_cmd.update(IO_files)
         return out_cmd, command_ids
 
-    def get_cmd(self):
-        """Returns the final command line.
-
-        Returns:
-        final_cmd: List of command line produced by the object (line breaks not allowed within command lines!).
-        """
-        run_command = utils.parse_config(self.name, 'cmd_name', 'execute')
-        final_cmd = [run_command]
-        for arg, val in self.out_cmd.iteritems():
-            final_cmd.append(arg + ' ' + val)
-        return [' '.join(final_cmd)]
-		

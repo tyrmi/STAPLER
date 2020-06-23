@@ -7,8 +7,8 @@ import os
 import sys
 import shutil
 import string
-import subprocess
 import time
+
 
 from collections import namedtuple
 
@@ -28,7 +28,7 @@ except SyntaxError:
 
 
 
-VERSION = '18.04.19'
+VERSION = '20.06.01'
 NAME = 'STAPLER'
 ART_NAME = '''
         _____________   ___  __   _______
@@ -43,18 +43,20 @@ class CurrentLogPath:
     """Class for storing current log file path"""
     path = ''
 DESCRIPTION = """
-This software creates command lines for bioinformatics programs. Consult
-the included manual pdf, the built in help function and example data directory
-for more detailed instructions.
+STAPLER creates workflows by generating command lines for bioinformatics 
+software based on simple user provided workflow template, the "staplefile". 
+Worklfows are parallelized by default when possible. Consult the included 
+manual pdf, the built in help function and example data directory for detailed 
+instructions.
 
 
 USAGE:
 
-The user input is a path to a staplefile plus other possible  arguments. For
+The user input is a path to a staplefile plus other optional arguments. For
 more information on staplefiles, check the example staple file.
 
 Usage example:
-python STAPLER.py input/file/path.txt --SLURM
+python STAPLER.py input/file/path.txt --slurm
 
 HELP USAGE:
 
@@ -66,40 +68,40 @@ Tool specific help.
 
 AVAILABLE MODES FOR PARALLELIZATION:
 
---UNIX
-Parallelize workflow on any UNIX platform. The default maximum number of jobs
-to create in this mode is the detected number of CPU cores. This can be
-overridden by using the --MAX_JOB_COUNT parameter. Staplerfile path is required.
+By default each workflow is parallelized. The default maximum number of jobs
+to create is the detected number of CPU cores. This can be overridden by 
+using the --max_job_count parameter. The following resource managers found in 
+supercomputing environments are supported:
 
---LSF
+--lsf
 Create necessary files for parallel LSF array job run. Staplerfile path is
 required. NOTICE! This is an experimental feature, please report any feedback
 to jaakko.tyrmi@gmail.com
 
---SGE
+--sge
 Create necessary files for parallel Sun Grid Engine (SGE) array job. The
 array job can also be run on SGE relatives, such as Son of Grid Engine,
 Oracle Grid Engine, Univa Grid Engine and Open Grid Scheduler. This is an
 experimental feature, please report any feedback to jaakko.tyrmi@gmail.com
 
---SLURM
+--slurm
 Create necessary files for parallel SLURM array job run. Staplerfile path is
 required.
 
---TORQUE
+--torque
 Create necessary files for parallel TORQUE multiple job run. Staplerfile path
 is required. NOTICE! This is an experimental feature, please report any
 feedback to jaakko.tyrmi@gmail.com
 
 PARALLELIZATION PARAMETERS:
 
---MAX_JOB_COUNT
+--max_job_count
 Maximum number of jobs to create. If number of jobs exceeds this value,
 two or more jobs are merged to reduce job count. By default the job count is
 not limited and it equals the number of input data files. Staplerfile path is
 required.
 
---PRIORITY
+--priority
 Parallelization priority. Staplerfile path is required. This parameter has no
 effect on manually defined split points of staplerfile. Available values are:
 continuous / c
@@ -116,31 +118,31 @@ finishes.
 
 UTILITY PARAMETERS:
 
---VALIDATE_RUN
+--validate_run
 Checks if the the run has finished properly. Staplerfile path is required.
 
---FIX_RUN
-Can be used if --VALIDATE_run reports the run has not finished successfully. If
-In this case run can be continued with --FIX_RUN feature for only the
+--fix_run
+Can be used if --validate_run reports the run has not finished successfully. If
+In this case run can be continued with --fix_run feature for only the
 necessary files/steps. The original staplefile can be modified if one wants to
 change resource manager parameters (run time, max RAM, etc.). Staplerfile
 path is required.
 
---COMPRESS
+--compress
 Compresses finished run results (except .bam/.bai files). Staplerfile path is
-required. May be used in combination with --SLURM <core_count>. NOTICE,
+required. May be used in combination with --slurm <core_count>. NOTICE,
 experimental feature.
 
---DECOMPRESS
+--decompress
 Decompresses finished run results. Staplerfile path is required. May be used in
-combination with --SLURM <core_count>. NOTICE, experimental feature.
+combination with --slurm <core_count>. NOTICE, experimental feature.
 
---REMOVE
+--remove
 Removes all output directories and all of their contents of a specific workflow.
 Starting point direcory or any of its contents are not removed. Staplerfile
 path is required.
 
---VALIDATE_CONFIG
+--validate_config
 Tests the validity of config.txt file by checking each command if:
 1) module(s) can be loaded (if scecified)
 2) command can be found
@@ -157,7 +159,7 @@ def main(args):
         return 0
 
     # If asked, execute the config.txt validation
-    if '--VALIDATE_CONFIG' in args:
+    if '--validate_config' in args:
         validate_config_file(args)
         return 0
 
@@ -188,7 +190,7 @@ def main(args):
                                         allow_existing_dirs=False)
         except STAPLERerror.NewDirExists:
             raise STAPLERerror.STAPLERerror('This workflow has been created '
-                                            'already. Use the --REMOVE command '
+                                            'already. Use the --remove command '
                                             'to remove the\n current workflow '
                                             'if you wish to recreate it.')
 
@@ -250,7 +252,7 @@ def main(args):
             assert False # This should not happen
 
         if len(workloads) == 1:
-            print '\n\nCreated a single workflow, which will spawn {0} parallel jobs.'.format(len(workloads[0]))
+            print('\n\nCreated a single workflow, which will spawn {0} parallel jobs.'.format(len(workloads[0])))
         else:
             print '\n\nCreated {0} workflows, which will spawn the following' \
                   ' numbers of respective parallel jobs:\n{1}'.format(len(workloads),
@@ -332,6 +334,9 @@ def print_generic_help():
     print 'Version {1}\nby {2}'.format(NAME, VERSION, AUTHOR)
     print DESCRIPTION
     tools = sorted(AvailableCommands.commands.keys(), key=lambda v: v.upper())
+    # Do not show CUSTOM command in the help
+    tools.remove('CUSTOM')
+    tools.remove('CUSTOM_NO_OUTPUT')
     print '\n\nSupported tools are:\n{0}'.format('\n'.join(tools))
     print '\nHint: Check tool specific help with --help <tool_name>\n'
 
@@ -365,7 +370,7 @@ def validate_config_file(args):
     """
     # Validate arguments
     if len(args) > 2:
-        print 'Error! --VALIDATE_CONFIG does not take any arguments.'
+        print 'Error! --validate_config does not take any arguments.'
         return
 
     # Check if the config.txt exists
@@ -446,13 +451,6 @@ def validate_config_file(args):
         else:
             print 'OK. Continuing validation of supported commands...\n'
 
-    # Check if modules are available on current platform
-    try:
-        subprocess.check_call('module')
-        modules_available = True
-    except subprocess.CalledProcessError:
-        modules_available = False
-
     # Test each command on each row of config.txt
     print 'Testing the config.txt commands...'
     devnull = open(os.devnull, 'wb')
@@ -461,7 +459,7 @@ def validate_config_file(args):
     results = []
     for cmd in config_file_defined_commands:
         i += 1
-        if cmd in ('CUSTOM'): continue
+        if cmd in ('CUSTOM', 'CUSTOM_NO_OUTPUT'): continue
         check_result = AvailableCommands.commands[cmd].validate_tool_config()
         check_result = [string.ljust(cmd, max_width)] + check_result
         results.append('\t'.join(check_result))
@@ -470,7 +468,6 @@ def validate_config_file(args):
             config_file_defined_commands)*100))))
         sys.stdout.flush()
 
-
     # Print results
     print '\n\nTest results:'
     print '\n'.join(results)
@@ -478,10 +475,6 @@ def validate_config_file(args):
     print 'OK:   Command has run perfectly.'
     print 'FAIL: Running the command has failed.'
     print '- :   Unable to test command due to failure in load_module\n'
-    if modules_available:
-        print 'Notice! As your platform seems to support modules, ' \
-              'it is strongly advisable to run "module reset" before using ' \
-              'the --VALIDATE_CONFIG feature to generate reliable results.\n'
 
 def update_config_file(commands_to_add, commands_to_remove):
     """Creates an updated version of current config.txt file
@@ -577,50 +570,50 @@ def parse_command_line(args):
     # Parse the resource manager to use
     all_parameters = ' '.join(args)
     resource_manager = None
-    if '--LSF' in args:
+    if '--lsf' in args:
         resource_manager = 'lsf'
-        args.remove('--LSF')
-    if '--SGE' in args:
+        args.remove('--lsf')
+    if '--sge' in args:
         if resource_manager is not None:
             raise STAPLERerror.STAPLERerror('Multiple resource managers are listed in the '
                                             'command line. Please, choose only one.')
         resource_manager = 'sge'
-        args.remove('--SGE')
-    if '--SLURM' in args:
+        args.remove('--sge')
+    if '--slurm' in args:
         if resource_manager is not None:
             raise STAPLERerror.STAPLERerror('Multiple resource managers are listed in the '
                                             'command line. Please, choose only one.')
         resource_manager = 'slurm'
-        args.remove('--SLURM')
-    if '--TORQUE' in args:
+        args.remove('--slurm')
+    if '--torque' in args:
         if resource_manager is not None:
             raise STAPLERerror.STAPLERerror('Multiple resource managers are listed in the '
                                             'command line. Please, choose only one.')
         resource_manager = 'torque'
-        args.remove('--TORQUE')
-    if '--UNIX' in args:
+        args.remove('--torque')
+    if '--UNIX' in args or resource_manager is None:
         if resource_manager is not None:
             raise STAPLERerror.STAPLERerror('Multiple resource managers are listed in the '
                                             'command line. Please, choose only one.')
         resource_manager = 'unix'
-        args.remove('--UNIX')
+        if '--UNIX' in args: args.remove('--UNIX')
 
     # Parse the limit for maximum number of jobs to spawn
-    if '--MAX_JOB_COUNT' in args:
+    if '--max_job_count' in args:
         if resource_manager is None:
-            raise STAPLERerror.STAPLERerror('--MAX_JOB_COUNT parameter can only be defined '
+            raise STAPLERerror.STAPLERerror('--max_job_count parameter can only be defined '
                                             'if a resource manager is also defined '
-                                            '(e.g. --SLURM)!')
+                                            '(e.g. --slurm)!')
         try:
-            max_job_count = int(args[args.index('--MAX_JOB_COUNT')+1])
+            max_job_count = int(args[args.index('--max_job_count')+1])
         except (TypeError, IndexError):
-            raise STAPLERerror.STAPLERerror('--MAX_JOB_COUNT requires a positive integer '
-                                            'value, e.g. --MAX_JOB_COUNT 16')
+            raise STAPLERerror.STAPLERerror('--max_job_count requires a positive integer '
+                                            'value, e.g. --max_job_count 16')
         if max_job_count < 1:
-            raise STAPLERerror.STAPLERerror('--MAX_JOB_COUNT requires a positive integer '
-                                            'value, e.g. --MAX_JOB_COUNT 16')
-        args.pop(args.index('--MAX_JOB_COUNT')+1)
-        args.remove('--MAX_JOB_COUNT')
+            raise STAPLERerror.STAPLERerror('--max_job_count requires a positive integer '
+                                            'value, e.g. --max_job_count 16')
+        args.pop(args.index('--max_job_count')+1)
+        args.remove('--max_job_count')
     else:
         if resource_manager == 'unix':
             max_job_count = multiprocessing.cpu_count()
@@ -628,27 +621,27 @@ def parse_command_line(args):
             max_job_count = None
 
     # Parse workflow control parameters
-    if '--PRIORITY' in args:
+    if '--priority' in args:
         if resource_manager is None:
-            raise STAPLERerror.STAPLERerror('--PRIORITY parameter can be used only if a '
+            raise STAPLERerror.STAPLERerror('--priority parameter can be used only if a '
                                             'resource manager (e.g. SLURM) is specified!')
         if resource_manager == 'unix':
-            raise STAPLERerror.STAPLERerror('--PRIORITY parameter cannot be '
+            raise STAPLERerror.STAPLERerror('--priority parameter cannot be '
                                             'used in combination with --UNIX '
                                             'parameter!')
         try:
-            if (args[args.index('--PRIORITY')+1]).lower() in ('continuous', 'c'):
+            if (args[args.index('--priority')+1]).lower() in ('continuous', 'c'):
                 auto_split_workflows = False
-            elif (args[args.index('--PRIORITY')+1]).lower() in ('split', 's'):
+            elif (args[args.index('--priority')+1]).lower() in ('split', 's'):
                 auto_split_workflows = True
             else:
-                raise STAPLERerror.STAPLERerror('Allowed values for --PRIORITY parameter are '
+                raise STAPLERerror.STAPLERerror('Allowed values for --priority parameter are '
                                                 '"continuous", "c", "split" and "s"!')
         except (TypeError, IndexError):
-            raise STAPLERerror('--PRIORITY parameter requires a value! Allowed values are '
+            raise STAPLERerror('--priority parameter requires a value! Allowed values are '
                                '"continuous", "c", "split" and "s" ')
-        args.pop(args.index('--PRIORITY')+1)
-        args.remove('--PRIORITY')
+        args.pop(args.index('--priority')+1)
+        args.remove('--priority')
     else:
         if resource_manager == 'unix':
             auto_split_workflows = True
@@ -657,30 +650,30 @@ def parse_command_line(args):
     compress_run = None
 
     # Parse workflow compression/decompression parameters
-    if '--COMPRESS' in args:
+    if '--compress' in args:
         compress_run = 'compress'
-        args.remove('--COMPRESS')
-    if '--DECOMPRESS' in args:
-        if '--COMPRESS' in args:
-            raise STAPLERerror.STAPLERerror('--COMPRESS and --DECOMPRESS parameters can '
+        args.remove('--compress')
+    if '--decompress' in args:
+        if '--compress' in args:
+            raise STAPLERerror.STAPLERerror('--compress and --decompress parameters can '
                                             'not be used simultaneously!')
         compress_run = 'decompress'
-        args.remove('--DECOMPRESS')
+        args.remove('--decompress')
 
     # Parse workflow validation/fixing/removing parameters
-    if '--VALIDATE_RUN' in args:
+    if '--validate_run' in args:
         validate_run = True
-        args.remove('--VALIDATE_RUN')
+        args.remove('--validate_run')
     else:
         validate_run = False
-    if '--FIX_RUN' in args:
+    if '--fix_run' in args:
         fix_run = True
-        args.remove('--FIX_RUN')
+        args.remove('--fix_run')
     else:
         fix_run = False
-    if '--REMOVE' in args:
+    if '--remove' in args:
         rm_workflow = True
-        args.remove('--REMOVE')
+        args.remove('--remove')
     else:
         rm_workflow = False
 
@@ -713,21 +706,21 @@ def parse_command_line(args):
 
     # Do further validity checks for different parameter combinations
     if validate_run and fix_run:
-        raise STAPLERerror.STAPLERerror('--VALIDATE_RUN and --FIX_RUN cannot be used '
+        raise STAPLERerror.STAPLERerror('--validate_run and --fix_run cannot be used '
                                         'in the same command!')
     if validate_run and rm_workflow:
-        raise STAPLERerror.STAPLERerror('--REMOVE_WORKFLOW and --VALIDATE_RUN cannot be '
+        raise STAPLERerror.STAPLERerror('--remove_WORKFLOW and --validate_run cannot be '
                                         'used in the same command!')
     if fix_run and rm_workflow:
-        raise STAPLERerror.STAPLERerror('--FIX_RUN and REMOVE_WORKFLOW cannot be used in '
+        raise STAPLERerror.STAPLERerror('--fix_run and REMOVE_WORKFLOW cannot be used in '
                                         'the same command!')
     if compress_run is not None:
         if validate_run or rm_workflow or fix_run:
-            raise STAPLERerror.STAPLERerror('--VALIDATE_RUN, --REMOVE_WORKFLOW or --FIX_RUN '
+            raise STAPLERerror.STAPLERerror('--validate_run, --remove_WORKFLOW or --fix_run '
                                             'parameters cannot be used in the same command '
                                             'with --COMRESS_RUN!')
     if validate_run or rm_workflow:
-        if resource_manager is not None:
+        if resource_manager is not 'unix':
             raise STAPLERerror.STAPLERerror('Resource managers cannot be used when '
                                             'removing workflows!')
 
@@ -775,9 +768,11 @@ def parse_input_file(command_line_parameters):
     starting_point = None
     project_dir = None
     now_reading = None
+    unix_variables = {}
     for ln in handle:
         i += 1
         ln = ln.strip()
+
         staplefile.append(ln)
         if i == 1:
             if ln != 'STAPLEFILE':
@@ -803,6 +798,12 @@ def parse_input_file(command_line_parameters):
         if ln.startswith('#'):
             continue
 
+        # Place unix shell script variables before parsing the input file
+        if now_reading is not None:
+            for uv, uv_string in unix_variables.iteritems():
+                if uv in ln:
+                    ln = ln.replace(uv, uv_string)
+
         #Read commands
         if ln == 'COMMANDS:':
             now_reading = 'commands'
@@ -811,6 +812,11 @@ def parse_input_file(command_line_parameters):
             now_reading = None
             continue
         if now_reading == 'commands':
+            if not ln.startswith('stapler_'):
+                if '$NO_OUTPUT' in ln:
+                    ln = 'CUSTOM_NO_OUTPUT ' + ln
+                else:
+                    ln = 'CUSTOM ' + ln
             try:
                 commands.append(ln)
             except KeyError:
@@ -842,6 +848,14 @@ def parse_input_file(command_line_parameters):
                                                 'directory does not exist:\n{0}'.format(project_dir))
             continue
 
+        # Identify unix shell script -like variables
+        if now_reading is None:
+            if ln.startswith('#'): continue
+            if ln.count('=') == 1:
+                unix_variable_parts = ln.split('=')
+                unix_variables['$' + unix_variable_parts[0]] = unix_variable_parts[1]
+                continue
+
         # All lines that can be parsed have been read and loop continued.
         raise STAPLERerror.STAPLERerror('Odd line found in '
                                         'staplerfile:\n{0}\nComment lines may '
@@ -856,7 +870,11 @@ def parse_input_file(command_line_parameters):
                                         'COMMANDS END: lines. The above line '
                                         'was not a keyword line nor a within '
                                         'resource manager or command line '
-                                        'fields.'.format(ln))
+                                        'fields. Shell script -like variables '
+                                        'can also be used (e.g. MY_VAR=14),'
+                                        'and are recognized by the presence of '
+                                        'single equals sign. Please revise the '
+                                        'above line in the input file.'.format(ln))
 
     if not job_name:
         raise STAPLERerror.STAPLERerror('JOB NAME: -argument must be defined '
@@ -926,8 +944,8 @@ def remove_workflow(input_file_parameters, dir_stack):
                 for d in dirs_to_del:
                     shutil.rmtree(d)
             except OSError as err:
-                raise STAPLERerror('Unable to remove workflow. Reason:\n'
-                                   '{0}'.format(str(err)))
+                raise STAPLERerror.STAPLERerror('Unable to remove workflow. Reason:\n'
+                                                '{0}'.format(str(err)))
             print 'Done.'
         else:
             print 'Canceled.'
@@ -1157,7 +1175,7 @@ STAPLERerror: Command type is not supported.
                                                     '{0} and similar files '
                                                     'from the starting point '
                                                     'directory. Notice that '
-                                                    '--REMOVE command will '
+                                                    '--remove command will '
                                                     'not delete any files '
                                                     'from the starting point '
                                                     'directory.'
@@ -1167,7 +1185,7 @@ STAPLERerror: Command type is not supported.
                                                 'exists in the output '
                                                 'directory {1}. Remove the '
                                                 'existing workflow or use the '
-                                                '--FIX_RUN feature to create '
+                                                '--fix_run feature to create '
                                                 'a fixed run.'.format(existing_file_name, out_dir.path))
             except STAPLERerror.VirtualIOError:
                 break
@@ -1181,18 +1199,30 @@ STAPLERerror: Command type is not supported.
                                                 'manual to see how '
                                                 'to do this.'.format(command_type.name))
         if not current_step_commands:
-            raise STAPLERerror.STAPLERerror('No proper existing or predicted '
-                                            'input files were found for '
-                                            'command {0} in the input '
-                                            'directory:\n{1}\nThis command '
-                                            'takes input files only in the '
-                                            'following formats:\n{2}\nInput '
-                                            'directory is predicted to '
-                                            'contain the following files:\n{'
-                                            '3}'.format(command_type.name,
-                                                        in_dir.path,
-                                                        '\n'.join(command_type.input_types),
-                                                        ', '.join(in_dir.file_names.keys())))
+            if command_type.name == 'custom':
+                raise STAPLERerror.STAPLERerror(
+                    'No proper existing or predicted '
+                    'input files were found for '
+                    'command\n{0}\n in the input '
+                    'directory:\n{1}\n. Please revise the command line '
+                    'by setting desired input file types to input '
+                    'keywords e.g. $INPUT.fastq\nInput '
+                    'directory is predicted to '
+                    'contain the following files:\n{2}'.format(command_parameters,
+                                                               in_dir.path,
+                                                               ', '.join(in_dir.file_names.keys())))
+            else:
+                raise STAPLERerror.STAPLERerror('No proper existing or predicted '
+                                                'input files were found for '
+                                                'command {0} in the input '
+                                                'directory:\n{1}\nThis command '
+                                                'takes input files only in the '
+                                                'following formats:\n{2}\nInput '
+                                                'directory is predicted to '
+                                                'contain the following files:\n{3}'.format(command_type.name,
+                                                            in_dir.path,
+                                                            '\n'.join(command_type.input_types),
+                                                            ', '.join(in_dir.file_names.keys())))
         if first_command:
             workflows.append([current_step_commands])
             first_command = False
@@ -1261,7 +1291,7 @@ STAPLERerror: Command type is not supported.
             prev_command_had_output_dir = False
 
         # Read files until command class finds no more valid input files
-        successfull_commands = 0
+        successful_commands = 0
         current_command = None
         while True:
             try:
@@ -1270,7 +1300,7 @@ STAPLERerror: Command type is not supported.
                 # file does not exist). Otherwise NewFileError is raised.
                 current_command = command_type(command_parameters, in_dir, out_dir)
             except STAPLERerror.NewFileExists:
-                successfull_commands += 1
+                successful_commands += 1
                 continue
             except STAPLERerror.VirtualIOError:
                 break
@@ -1298,7 +1328,7 @@ STAPLERerror: Command type is not supported.
             logging.info('Output directory is:\n{0}'.format(out_dir
                                                             .path))
             j += 1
-        if not current_step_commands and not successfull_commands:
+        if not current_step_commands and not successful_commands:
             raise STAPLERerror.STAPLERerror('No proper existing or predicted '
                                             'input files were found for '
                                             'command {0} in the input '
@@ -1373,7 +1403,6 @@ resource managers.
 
     i = 0
     number_of_warnings = 0
-    number_of_canceled_threads = 0
     warning_strings = ['invalid', 'exception', 'warning']
     error_strings = ['error', 'segmentation fault', 'canceled', '(err):']
     skip_strings = ['adapters with at most',
@@ -1460,7 +1489,6 @@ prints: Numbers of commands that have failed during runtime.
         if command_type.require_output_dir:
             out_dir = dir_stack[dir_stack_index+1]
             prev_command_had_output_dir = True
-            no_command_has_required_output_dir = False
         else:
             out_dir = in_dir
             prev_command_had_output_dir = False
@@ -1644,7 +1672,7 @@ def infer_id_groups(workflow, command_line_parameters):
                                    'extensions. This seems to be the for '
                                    'ID "{0}". Remove or '
                                    'rename one of the input files with '
-                                   'this basename (or if using a CUSTOM '
+                                   'this basename (or if using a custom '
                                    'command, define the input file type '
                                    'in the command), and then rerun '
                                    'STAPLER.'.format(current_id))
@@ -1773,7 +1801,7 @@ def write_lsf(workloads, input_file_parameters, command_line_parameters):
         file_main_name = '{0}_LSF_WORKLOAD_{1}'.format(NAME,
                                                           workload_index_string)
 
-        # When --FIX_RUN mode is used the output and log files files already
+        # When --fix_run mode is used the output and log files files already
         # exist. To prevent overwriting these files with new ones specific
         # prefix or appendix strings are added to the new output file names.
         appendix = '.sh'
@@ -1797,8 +1825,21 @@ def write_lsf(workloads, input_file_parameters, command_line_parameters):
             # Iterate over output commands of each thread and write necessary
             # subshell files for each
             out_lines = []
-            for cmd in thread_contents:
-                out_lines += generate_subshell_file_contents(cmd)
+            cmds_in_thread = len(thread_contents)
+            for i in xrange(cmds_in_thread):
+                # Check if any modules need loading or are they loaded by previous command
+                skip_module_loading = False
+                if i > 0:
+                    if thread_contents[i].load_module == thread_contents[i-1].load_module:
+                        skip_module_loading = True
+                # Check if any modules need unloading or will they be used by following command
+                skip_module_unloading = False
+                if i < cmds_in_thread-1:
+                    if thread_contents[i].load_module == thread_contents[i+1].load_module:
+                        skip_module_unloading = True
+                out_lines += generate_subshell_file_contents(thread_contents[i],
+                                                             skip_module_loading,
+                                                             skip_module_unloading)
 
             # Write subshell file
             thread_index_string = str(thread_index)
@@ -1889,7 +1930,7 @@ def write_sge(workloads, input_file_parameters, command_line_parameters):
         file_main_name = '{0}_SGE_WORKLOAD_{1}'.format(NAME,
                                                        workload_index_string)
 
-        # When --FIX_RUN mode is used the output and log files files already
+        # When --fix_run mode is used the output and log files files already
         # exist. To prevent overwriting these files with new ones specific
         # prefix or appendix strings are added to the new output file names.
         prefix = ''
@@ -1915,8 +1956,22 @@ def write_sge(workloads, input_file_parameters, command_line_parameters):
             # Iterate over output commands of each thread and write necessary
             # subshell files for each
             out_lines = []
-            for cmd in thread_contents:
-                out_lines += generate_subshell_file_contents(cmd)
+            cmds_in_thread = len(thread_contents)
+            for i in xrange(cmds_in_thread):
+                # Check if any modules need loading or are they loaded by previous command
+                skip_module_loading = False
+                if i > 0:
+                    if thread_contents[i].load_module == thread_contents[i-1].load_module:
+                        skip_module_loading = True
+                # Check if any modules need unloading or will they be used by following command
+                skip_module_unloading = False
+                if i < cmds_in_thread-1:
+                    if thread_contents[i].load_module == thread_contents[i+1].load_module:
+                        skip_module_unloading = True
+                out_lines += generate_subshell_file_contents(thread_contents[i],
+                                                             skip_module_loading,
+                                                             skip_module_unloading)
+
 
             # Write subshell file
             thread_index_string = str(thread_index)
@@ -2010,7 +2065,7 @@ def write_slurm(workloads, input_file_parameters, command_line_parameters):
         file_main_name = '{0}_SBATCH_WORKLOAD_{1}'.format(NAME,
                                                               workload_index_string)
 
-        # When --FIX_RUN mode is used the output and log files files already
+        # When --fix_run mode is used the output and log files files already
         # exist. To prevent overwriting these files with new ones specific
         # prefix or appendix strings are added to the new output file names.
         appendix = '.sh'
@@ -2037,8 +2092,22 @@ def write_slurm(workloads, input_file_parameters, command_line_parameters):
             # Iterate over output commands of each thread and write necessary
             # subshell files for each
             out_lines = []
-            for cmd in thread_contents:
-                out_lines += generate_subshell_file_contents(cmd)
+            cmds_in_thread = len(thread_contents)
+            for i in xrange(cmds_in_thread):
+                # Check if any modules need loading or are they loaded by previous command
+                skip_module_loading = False
+                if i > 0:
+                    if thread_contents[i].load_module == thread_contents[i-1].load_module:
+                        skip_module_loading = True
+                # Check if any modules need unloading or will they be used by following command
+                skip_module_unloading = False
+                if i < cmds_in_thread-1:
+                    if thread_contents[i].load_module == thread_contents[i+1].load_module:
+                        skip_module_unloading = True
+                out_lines += generate_subshell_file_contents(thread_contents[i],
+                                                             skip_module_loading,
+                                                             skip_module_unloading)
+
 
             # Write subshell file
             thread_index += 1
@@ -2131,7 +2200,7 @@ def write_torque(workloads, input_file_parameters, command_line_parameters):
         file_main_name = '{0}_TORQUE_WORKLOAD_{1}'.format(NAME,
                                                           workload_index_string)
 
-        # When --FIX_RUN mode is used the output and log files files already
+        # When --fix_run mode is used the output and log files files already
         # exist. To prevent overwriting these files with new ones specific
         # prefix or appendix strings are added to the new output file names.
         appendix = '.sh'
@@ -2155,8 +2224,22 @@ def write_torque(workloads, input_file_parameters, command_line_parameters):
             # Iterate over output commands of each thread and write necessary
             # subshell files for each
             out_lines = []
-            for cmd in thread_contents:
-                out_lines += generate_subshell_file_contents(cmd)
+            cmds_in_thread = len(thread_contents)
+            for i in xrange(cmds_in_thread):
+                # Check if any modules need loading or are they loaded by previous command
+                skip_module_loading = False
+                if i > 0:
+                    if thread_contents[i].load_module == thread_contents[i-1].load_module:
+                        skip_module_loading = True
+                # Check if any modules need unloading or will they be used by following command
+                skip_module_unloading = False
+                if i < cmds_in_thread-1:
+                    if thread_contents[i].load_module == thread_contents[i+1].load_module:
+                        skip_module_unloading = True
+                out_lines += generate_subshell_file_contents(thread_contents[i],
+                                                             skip_module_loading,
+                                                             skip_module_unloading)
+
 
             # Write subshell file
             thread_index_string = str(thread_index)
@@ -2251,7 +2334,7 @@ def write_unix(workloads, input_file_parameters, command_line_parameters):
         background_process_list.append('echo "Running workload part {0}"'.format(
             workload_index))
 
-        # When --FIX_RUN mode is used the output and log files files already
+        # When --fix_run mode is used the output and log files files already
         # exist. To prevent overwriting these files with new ones specific
         # prefix or appendix strings are added to the new output file names.
         appendix = '.sh'
@@ -2284,8 +2367,22 @@ def write_unix(workloads, input_file_parameters, command_line_parameters):
             # Iterate over output commands of each thread and write necessary
             # subshell files for each
             out_lines = []
-            for cmd in thread_contents:
-                out_lines += generate_subshell_file_contents(cmd)
+            cmds_in_thread = len(thread_contents)
+            for i in xrange(cmds_in_thread):
+                # Check if any modules need loading or are they loaded by previous command
+                skip_module_loading = False
+                if i > 0:
+                    if thread_contents[i].load_module == thread_contents[i-1].load_module:
+                        skip_module_loading = True
+                # Check if any modules need unloading or will they be used by following command
+                skip_module_unloading = False
+                if i < cmds_in_thread-1:
+                    if thread_contents[i].load_module == thread_contents[i+1].load_module:
+                        skip_module_unloading = True
+                out_lines += generate_subshell_file_contents(thread_contents[i],
+                                                             skip_module_loading,
+                                                             skip_module_unloading)
+
 
             # Write subshell file
             thread_index_string = str(thread_index).zfill(thread_zfill_amount)
@@ -2359,7 +2456,7 @@ def validate_resource_manager_parameters(user_defined_parameters,
                                                 'inferred by {1}.'.format(adp, NAME))
 
 
-def generate_subshell_file_contents(cmd):
+def generate_subshell_file_contents(cmd, skip_module_loading, skip_module_unloading):
     """Creates a list of necessary information for each output command.
 
     Parameters:
@@ -2392,9 +2489,10 @@ def generate_subshell_file_contents(cmd):
 
     # Write module load commands required for current command to
     # the output shell script
-    if cmd.load_module:
-        for module in cmd.load_module:
-            out_lines.append(module)
+    if not skip_module_loading:
+        if cmd.load_module:
+            for module in cmd.load_module:
+                out_lines.append(module)
 
     # Write command lines to the output shell script
     out_lines += cmd_list
@@ -2402,9 +2500,10 @@ def generate_subshell_file_contents(cmd):
 
     # Write module unload commands required for current command
     # to the output shell script
-    if cmd.unload_module:
-        for module in cmd.unload_module:
-            out_lines.append(module)
+    if not skip_module_unloading:
+        if cmd.unload_module:
+            for module in cmd.unload_module:
+                out_lines.append(module)
 
     #Write to stdout
     out_lines.append('echo Finished at:')

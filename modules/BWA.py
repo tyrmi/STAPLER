@@ -32,12 +32,12 @@ class bwa_mem(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'bwa_mem'
+    name = 'stapler_bwa_mem'
     input_types = {'.fastq', '.fq'}
     output_types = ['.sam']
     hidden_mandatory_args = ['--!fastq1', '--!reference_path', '--!out']
     user_mandatory_args = ['--!reference_path']
-    remove_user_args = []
+    remove_user_args = ['--!read_format']
     user_optional_args = ['--!read_format', '--!fastq2', '-t', '-k', '-w', '-d',
                           '-r', '-c', '-A', '-B', '-O', '-E', '-L', '-U', '-R', '-v',
                           '-M', '-T', '-P', '-p', '-C', '-H']
@@ -136,7 +136,7 @@ applying 'bwa index' to your reference fasta file. You must do this manually.
                 if self.name not in fl.users:
                     if utils.splitext(fl.name)[-1] in self.input_types:
                         IO_files['--!fastq1'] = os.path.join(in_dir.path, fl.name)
-                        command_ids.append(utils.infer_path_id(IO_files['--!fastq']))
+                        command_ids.append(utils.infer_path_id(IO_files['--!fastq1']))
                         in_dir.use_file(fl.name, self.name)
                         assert len(self.output_types) == 1, 'Several output ' \
                                                             'types, override ' \
@@ -206,7 +206,7 @@ class bwa_bwasw(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'bwa_bwasw'
+    name = 'stapler_bwa_bwasw'
     input_types = {'.fastq', '.fq'}
     output_types = ['.sam']
     hidden_mandatory_args = ['--!fastq1', '--!reference_path', '--!out']

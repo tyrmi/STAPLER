@@ -32,7 +32,7 @@ class freebayes(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'freebayes'
+    name = 'stapler_freebayes'
     #Accept all defined types:
     input_types = {'.bam'}
     output_types = ['.vcf', '.vcf.gz']

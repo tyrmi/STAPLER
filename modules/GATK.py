@@ -116,7 +116,7 @@ class GATK_superclass(GenericBase):
 
         for arg, values in parsed_in_cmd.iteritems():
             for v in values:
-                if v.startswith('!value_table'):
+                if v.startswith('$VALUE_TABLE'):
                     new_value = self._parse_value_table(v)
                     out_cmd[arg] = [new_value]
         return out_cmd
@@ -165,7 +165,7 @@ class ApplyBQSR(GATK_superclass):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'gatk_ApplyBQSR'
+    name = 'stapler_gatk_ApplyBQSR'
     input_types = set(['.bam', '.sam', '.cram'])
     output_types = ['.bam', '.sam', '.cram']
     require_output_dir = True
@@ -302,7 +302,7 @@ class BaseRecalibrator(GATK_superclass):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'gatk_BaseRecalibrator'
+    name = 'stapler_gatk_BaseRecalibrator'
     input_types = set(['.bam', '.sam', '.cram'])
     output_types = ['.table']
     require_output_dir = False
@@ -478,7 +478,7 @@ class GenotypeGVCFs(GATK_superclass):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'gatk_GenotypeGVCFs'
+    name = 'stapler_gatk_GenotypeGVCFs'
     input_types = set(['.gvcf'])
     output_types = ['.vcf']
     require_output_dir = True
@@ -595,7 +595,7 @@ class HaplotypeCaller(GATK_superclass):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'gatk_HaplotypeCaller'
+    name = 'stapler_gatk_HaplotypeCaller'
     input_types = set(['.bam', '.sam', '.cram'])
     output_types = ['.vcf', '.gvcf']
     require_output_dir = True
@@ -772,7 +772,7 @@ class IndexFeatureFile(GATK_superclass):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'gatk_IndexFeatureFile'
+    name = 'stapler_gatk_IndexFeatureFile'
     input_types = set(['.vcf', '.bed', '.vcf.gz', '.bed.gz'])
     output_types = []
     require_output_dir = False

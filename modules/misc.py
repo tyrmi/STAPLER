@@ -27,7 +27,7 @@ class vcf_sort(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'vcf_sort'
+    name = 'stapler_vcf_sort'
     input_types = set(['.vcf'])
     output_types = ['.vcf']
     hidden_mandatory_args = ['-i', '-o']
@@ -43,14 +43,6 @@ unix sort command is a standard command line tool which should be available in
 any unix and unix-like platform.
 '''
 
-    @classmethod
-    def validate_tool_config(cls):
-        """Checks if the current tool can be run as defined in config.txt
-
-        """
-
-        return ['OK', 'OK', 'OK']
-
 
 
     def get_cmd(self):
@@ -64,3 +56,4 @@ any unix and unix-like platform.
         final_cmds.append('grep --no-filename -v "#" {0} | sort -k1,1V -k2,2n >> {1}\n'.format(self.out_cmd['-i'],
                                                                                                self.out_cmd['-o']))
         return final_cmds
+

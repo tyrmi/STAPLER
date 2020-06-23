@@ -43,7 +43,7 @@ class Picard_SuperClass(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'Picard_SuperClass'
+    name = 'stapler_Picard_SuperClass'
 
     def get_cmd(self):
         """Returns the final command line.
@@ -61,7 +61,7 @@ class Picard_SuperClass(GenericBase):
 
 class Picard_AddOrReplaceReadGroups(Picard_SuperClass):
 
-    name = 'Picard_AddOrReplaceReadGroups'
+    name = 'stapler_Picard_AddOrReplaceReadGroups'
     #Accept all defined types:
     input_types = {'.sam', '.bam'}
     output_types = ['.sam', '.bam']
@@ -85,8 +85,8 @@ RGPU
 RGSM
 
 These (and other optional [see picard manual]) fields can be defined by using the 
-STAPLER !value_table feature when you want to define a specific value for each file, e.g.:
--RGLB !value_table:path/to/my_RGLB_names.txt:name_of_id_column:name_of_RGLB_column
+STAPLER $VALUE_TABLE feature when you want to define a specific value for each file, e.g.:
+-RGLB $VALUE_TABLE:path/to/my_RGLB_names.txt:name_of_id_column:name_of_RGLB_column
 See STAPLER example directory on how to define a value_table
     '''
 
@@ -156,7 +156,7 @@ class Picard_CollectAlignmentSummaryMetrics(Picard_SuperClass):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'Picard_CollectAlignmentSummaryMetrics'
+    name = 'stapler_Picard_CollectAlignmentSummaryMetrics'
     #Accept all defined types:
     input_types = {'.sam', '.bam'}
     output_types = ['.out']
@@ -245,7 +245,7 @@ class Picard_CollectInsertSizeMetrics(Picard_SuperClass):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'Picard_CollectInsertSizeMetrics'
+    name = 'stapler_Picard_CollectInsertSizeMetrics'
     #Accept all defined types:
     input_types = {'.sam', '.bam'}
     output_types = ['.out']
@@ -339,7 +339,7 @@ class Picard_CollectWgsMetrics(Picard_SuperClass):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'Picard_CollectWgsMetrics'
+    name = 'stapler_Picard_CollectWgsMetrics'
     #Accept all defined types:
     input_types = {'.sam', '.bam'}
     output_types = ['.out']
@@ -442,7 +442,7 @@ class Picard_MarkDuplicates(Picard_SuperClass):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'Picard_MarkDuplicates'
+    name = 'stapler_Picard_MarkDuplicates'
     #Accept all defined types:
     input_types = {'.sam', '.bam'}
     output_types = ['.sam', '.bam']
@@ -511,7 +511,7 @@ output bam/sam file.
 
 class Picard_SamFormatConverter(Picard_SuperClass):
 
-    name = 'Picard_SamFormatConverter'
+    name = 'stapler_Picard_SamFormatConverter'
     #Accept all defined types:
     input_types = {'.sam', '.bam'}
     output_types = ['.sam', '.bam']
@@ -609,7 +609,7 @@ class Picard_SortSam(Picard_SuperClass):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'Picard_SortSam'
+    name = 'stapler_Picard_SortSam'
     #Accept all defined types:
     input_types = {'.sam', '.bam'}
     output_types = ['.sam', '.bam']

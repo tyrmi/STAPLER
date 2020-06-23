@@ -33,7 +33,7 @@ class samtools_index(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'samtools_index'
+    name = 'stapler_samtools_index'
     #Accept all defined types:
     input_types = {'.bam'}
     output_types = []
@@ -129,7 +129,7 @@ class samtools_rmdup(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'samtools_rmdup'
+    name = 'stapler_samtools_rmdup'
     #Accept all defined types:
     input_types = {'.bam'}
     output_types = ['.bam']

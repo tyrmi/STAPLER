@@ -1,4 +1,4 @@
-STAPLER
+STAPLEFILE
 
 JOB NAME: SAMTOOLS_RUN
 STARTING POINT DIR: /path/to/EXAMPLE_DIRECTORY/RAW_DATA
@@ -14,13 +14,13 @@ RESOURCE MANAGER:
 RESOURCE MANAGER END:
 
 COMMANDS:
-trimmomatic -threads 1 --!SE -TRAILING 3
-bwa_mem --!read_format _R? --!reference_path /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta
-Picard_SamFormatConverter -!in_type .sam -!out_type .bam
-Picard_SortSam -SORT_ORDER coordinate
-Picard_MarkDuplicates -REMOVE_DUPLICATES true
-Picard_AddOrReplaceReadGroups -RGPL !value_table:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGPL -RGLB !value_table:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGLB -RGSM !value_table:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGSM -RGPU !value_table:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGPU -RGID !value_table:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGID
-samtools_index
-bcftools_mpileup -f /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta --!input_files_per_command all -Ob
-bcftools_call -Ov -m
+stapler_trimmomatic -threads 1 --!SE -TRAILING 3
+stapler_bwa_mem --!read_format _R? --!reference_path /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta
+stapler_Picard_SamFormatConverter -!in_type .sam -!out_type .bam
+stapler_Picard_SortSam -SORT_ORDER coordinate
+stapler_Picard_MarkDuplicates -REMOVE_DUPLICATES true
+stapler_Picard_AddOrReplaceReadGroups -RGPL $VALUE_TABLE:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGPL -RGLB $VALUE_TABLE:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGLB -RGSM $VALUE_TABLE:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGSM -RGPU $VALUE_TABLE:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGPU -RGID $VALUE_TABLE:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGID
+stapler_samtools_index
+stapler_bcftools_mpileup -f /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta --!input_files_per_command all -Ob
+stapler_bcftools_call -Ov -m
 COMMANDS END:

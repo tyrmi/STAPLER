@@ -28,7 +28,6 @@ def parse_staplefile_command_line(command_line):
     STAPLERerror: The command type user has defined is not supported by STAPLER.
     """
     import AvailableCommands
-
     command_line = command_line.split()
     try:
         command_type = AvailableCommands.commands[command_line[0]]
@@ -222,7 +221,6 @@ def parse_config(tool_name, key_col_name, value_col_name):
     """
     # Return None for the generic_base class, as it should not be in the
     # config file in any case
-
     try:
         run_command = read_value_from_multi_table(CONFIG_FILE_PATH,
                                                   tool_name,
@@ -241,7 +239,6 @@ def parse_config(tool_name, key_col_name, value_col_name):
         raise STAPLERerror('Error! Empty value for tool {0} was found from '
                            'installation configuration file !):\n{1}'.format(tool_name,
                                                                              CONFIG_FILE_PATH))
-
     return run_command
 
 

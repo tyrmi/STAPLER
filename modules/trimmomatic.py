@@ -37,7 +37,7 @@ class trimmomatic(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'trimmomatic'
+    name = 'stapler_trimmomatic'
     #Accept all defined types:
     input_types = {'.fastq'}
     output_types = ['.fastq']

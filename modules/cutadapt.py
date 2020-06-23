@@ -33,7 +33,7 @@ class cutadapt(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'cutadapt'
+    name = 'stapler_cutadapt'
     #Accept all defined types:
     input_types = {'.fasta', '.fasta.gz', '.fasta.bz2', '.fasta.xz',
                    '.fa', '.fa.gz', '.fa.bz2', '.fa.xz',

@@ -32,7 +32,7 @@ class soap2(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'soap2'
+    name = 'stapler_soap2'
     input_types = {'.fastq', '.fq'}
     output_types = ['.sam']
     hidden_mandatory_args = ['-a', '-o']

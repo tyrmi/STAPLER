@@ -34,7 +34,7 @@ class bayenv2(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'bayenv2'
+    name = 'stapler_bayenv2'
     input_types = set(['.SNPFILEDIR'])
     output_types = ['.bf']
     hidden_mandatory_args = ['-i', '-o', '-e', '-m', '--!SNPFILEDIR_path']

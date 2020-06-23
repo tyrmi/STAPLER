@@ -1,8 +1,8 @@
 STAPLEFILE
 
-JOB NAME: SOAP_RUN
+JOB NAME: GATK_RECALIBRATION_SNP_CALL
 STARTING POINT DIR: /path/to/EXAMPLE_DIRECTORY/RAW_DATA
-PROJECT DIR: /path/to/EXAMPLE_DIRECTORY/SOAP_RUN
+PROJECT DIR: /path/to/EXAMPLE_DIRECTORY/GATK_WORKFLOW
 
 RESOURCE MANAGER:
 #!/bin/bash -l
@@ -14,13 +14,12 @@ RESOURCE MANAGER:
 RESOURCE MANAGER END:
 
 COMMANDS:
-stapler_cutadapt --!PE --!read_format _R? -a AAAGGGCCCTTT -A GGGTTTCCCGGG
-stapler_soap2 --!read_format _R? -D /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta
+stapler_bowtie2 --!read_format _R? -x /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/stapler_a_lyrata_frigida.fasta --no-unal
 stapler_Picard_SamFormatConverter -!in_type .sam -!out_type .bam
 stapler_Picard_SortSam -SORT_ORDER coordinate
 stapler_Picard_MarkDuplicates -REMOVE_DUPLICATES true
 stapler_Picard_AddOrReplaceReadGroups -RGPL $VALUE_TABLE:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGPL -RGLB $VALUE_TABLE:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGLB -RGSM $VALUE_TABLE:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGSM -RGPU $VALUE_TABLE:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGPU -RGID $VALUE_TABLE:/path/to/EXAMPLE_DIRECTORY/VALUE_TABLE_READ_GROUPS.txt:file_name:RGID
 stapler_samtools_index
-stapler_bcftools_mpileup -f /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta --!input_files_per_command all -Ob
-stapler_bcftools_call -Ov -m
+stapler_freebayes -f /path/to/EXAMPLE_DIRECTORY/REFERENCE_GENOME/a_lyrata_frigida.fasta -u -i -= -X --!input_files_per_command single
+stapler_gatk_IndexFeatureFile
 COMMANDS END:

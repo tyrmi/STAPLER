@@ -194,28 +194,28 @@ This tool cannot be used by the end user.
         """
 
         for arg, value in parsed_in_cmd.iteritems():
-            if value.startswith('!value_table'):
+            if value.startswith('$VALUE_TABLE'):
                 new_value = self._parse_value_table(value)
                 out_cmd[arg] = new_value
         return out_cmd
 
     def _parse_value_table(self, string):
-        """Parses the !value_table input.
+        """Parses the $VALUE_TABLE input.
 
         Proper format:
-        !value_table:path:column_name_1:column_name_2
+        $VALUE_TABLE:path:column_name_1:column_name_2
 
         Parameters:
-        string: !value_table command.
+        string: $VALUE_TABLE command.
 
         Raises:
-        STAPLERerror: The !value_table format is not correct.
+        STAPLERerror: The $VALUE_TABLE format is not correct.
 
         Returns:
         String read from user defined file.
         """
         if string.count(':') != 3:
-            raise STAPLERerror('Invalid !value_table format:\n{'
+            raise STAPLERerror('Invalid $VALUE_TABLE format:\n{'
                                '0}\nProper format for value table looks like '
                                'this:\npath/to/value_table_file.txt:id_name_column:value_column.'.format(string))
         path = string.split(':')[1]

@@ -33,7 +33,7 @@ class fastqc(GenericBase):
     get_cmd: Method for getting the final cmd line string for output.
     """
 
-    name = 'fastqc'
+    name = 'stapler_fastqc'
     #Accept all defined types:
     input_types = {'.bam', '.fastq'}
     output_types = ['.unknown']
